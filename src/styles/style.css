@@ -284,3 +284,157 @@ button {
   color: #b7d7c1;
   text-align: center;
 }
+.start-screen {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+}
+
+.start-screen__content {
+  width: min(560px, 100%);
+  padding: 48px 32px;
+  border: 1px solid #70667d;
+  border-radius: 28px;
+  background: #24202d;
+  text-align: center;
+}
+
+.start-screen__eyebrow {
+  display: block;
+  margin-bottom: 12px;
+  color: #d7ad56;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.start-screen__title {
+  margin: 0;
+  font-size: clamp(36px, 7vw, 64px);
+}
+
+.start-screen__text {
+  max-width: 460px;
+  margin: 20px auto 32px;
+  color: #b9b1c2;
+  line-height: 1.6;
+}
+
+.start-button,
+.brew-button {
+  border: 1px solid #d7ad56;
+  border-radius: 12px;
+  background: #d7ad56;
+  color: #17141f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.start-button {
+  padding: 16px 32px;
+  font-size: 18px;
+}
+
+.recipe {
+  padding: 20px;
+  border: 1px solid #70667d;
+  border-radius: 18px;
+  background: #24202d;
+}
+
+.recipe__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.recipe__eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  color: #9c94a6;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.recipe__title {
+  margin: 0;
+  color: #f7f2e8;
+  font-size: 24px;
+}
+
+.recipe__score {
+  color: #ffca59;
+  white-space: nowrap;
+}
+
+.recipe__ranges {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.recipe__range {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid #4e4659;
+  border-radius: 10px;
+  background: #1b1721;
+  font-size: 12px;
+}
+
+.recipe__range span {
+  color: #9c94a6;
+}
+
+.recipe__range strong {
+  font-size: 14px;
+}
+
+.recipe__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.recipe__counter {
+  white-space: nowrap;
+}
+
+.recipe__counter_full {
+  color: #ffca59;
+}
+
+.brew-button {
+  min-width: 100px;
+  padding: 10px 18px;
+}
+
+.brew-button:disabled {
+  border-color: #5c5564;
+  background: #5c5564;
+  color: #928a9b;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .recipe__header,
+  .recipe__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .recipe__ranges {
+    grid-template-columns: 1fr;
+  }
+
+  .brew-button {
+    width: 100%;
+  }
+}
