@@ -1,5 +1,7 @@
 import './styles/style.css';
-
+import { LEVEL_ONE_PREVIEW_RECIPE } from './data/recipes';
+import { calculateCauldron } from './logic/calculate-cauldron';
+import { createParameterBars } from './ui/parameter-bars';
 import { LEVEL_ONE_INGREDIENTS, type Ingredient } from './data/ingredients';
 import { addIngredientToCauldron, LEVEL_ONE_CAULDRON_CAPACITY } from './logic/cauldron';
 import { createStock } from './logic/stock';
@@ -44,21 +46,29 @@ function render(): void {
 
   const cauldronIsFull = state.cauldronIngredients.length >= LEVEL_ONE_CAULDRON_CAPACITY;
 
-  content.append(
-    createShelf({
-      ingredients: LEVEL_ONE_INGREDIENTS,
-      stock: state.shelfStock,
-      isBlocked: cauldronIsFull,
-      onIngredientClick: addIngredient,
-    }),
+  const cauldronValues = calculateCauldron(state.cauldronIngredients);
+
+  const shelf = createShelf({
+    ingredients: LEVEL_ONE_INGREDIENTS,
+    stock: state.shelfStock,
+    isBlocked: cauldronIsFull,
+    onIngredientClick: addIngredient,
+  });
+
+  const rightColumn = document.createElement('div');
+  rightColumn.className = 'game__right-column';
+
+  rightColumn.append(
     createCauldron({
       ingredients: state.cauldronIngredients,
       capacity: LEVEL_ONE_CAULDRON_CAPACITY,
     }),
+    createParameterBars(cauldronValues, LEVEL_ONE_PREVIEW_RECIPE),
   );
+
+  content.append(shelf, rightColumn);
 
   game.append(title, content);
   appElement.replaceChildren(game);
 }
-
 render();
