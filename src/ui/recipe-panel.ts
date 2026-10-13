@@ -4,7 +4,6 @@ interface RecipePanelOptions {
   recipe: Recipe;
   ingredientCount: number;
   capacity: number;
-  score: number;
   onBrew: () => void;
 }
 
@@ -16,7 +15,6 @@ export function createRecipePanel({
   recipe,
   ingredientCount,
   capacity,
-  score,
   onBrew,
 }: RecipePanelOptions): HTMLElement {
   const section = document.createElement('section');
@@ -34,14 +32,8 @@ export function createRecipePanel({
   const title = document.createElement('h2');
   title.className = 'recipe__title';
   title.textContent = recipe.name;
-
+  header.append(headingGroup);
   headingGroup.append(eyebrow, title);
-
-  const scoreElement = document.createElement('strong');
-  scoreElement.className = 'recipe__score';
-  scoreElement.textContent = `Score: ${score}`;
-
-  header.append(headingGroup, scoreElement);
 
   const ranges = document.createElement('div');
   ranges.className = 'recipe__ranges';

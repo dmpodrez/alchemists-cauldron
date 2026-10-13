@@ -438,3 +438,136 @@ button {
     width: 100%;
   }
 }
+.hud {
+  display: grid;
+  grid-template-columns: 140px minmax(220px, 1fr) 140px;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.hud__item {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid #70667d;
+  border-radius: 14px;
+  background: #24202d;
+}
+
+.hud__label {
+  color: #9c94a6;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hud__value {
+  font-size: 20px;
+}
+
+.hud__timer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hud__timer-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #15121b;
+}
+
+.hud__timer-progress {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: #5ac47d;
+  transition: width 300ms linear;
+}
+
+.hud__lives {
+  color: #e65d68;
+  font-size: 20px;
+  letter-spacing: 4px;
+}
+
+.hud__timer_danger .hud__value {
+  color: #ff5d67;
+  animation: timer-pulse 800ms ease-in-out infinite;
+}
+
+.hud__timer_danger .hud__timer-progress {
+  background: #ff5d67;
+}
+
+@keyframes timer-pulse {
+  50% {
+    opacity: 0.45;
+    transform: scale(1.05);
+  }
+}
+
+.game-over {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+}
+
+.game-over__content {
+  width: min(520px, 100%);
+  padding: 48px 32px;
+  border: 1px solid #70667d;
+  border-radius: 28px;
+  background: #24202d;
+  text-align: center;
+}
+
+.game-over__eyebrow {
+  display: block;
+  margin-bottom: 10px;
+  color: #e65d68;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.game-over__title {
+  margin: 0;
+  font-size: clamp(42px, 7vw, 68px);
+}
+
+.game-over__score-label {
+  margin: 28px 0 4px;
+  color: #9c94a6;
+}
+
+.game-over__score {
+  display: block;
+  margin-bottom: 32px;
+  color: #ffca59;
+  font-size: 48px;
+}
+
+@media (max-width: 700px) {
+  .hud {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hud__timer {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .hud {
+    grid-template-columns: 1fr;
+  }
+
+  .hud__timer {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}

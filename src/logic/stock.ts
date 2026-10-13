@@ -12,3 +12,8 @@ export function createStock(ingredients: readonly Ingredient[]): ShelfStock {
 function randomStock(): number {
   return Math.floor(Math.random() * (MAX_STOCK - MIN_STOCK + 1)) + MIN_STOCK;
 }
+export function isShelfEmpty(stock: ShelfStock): boolean {
+  const amounts = Object.values(stock);
+
+  return amounts.length > 0 && amounts.every((amount) => amount === 0);
+}
