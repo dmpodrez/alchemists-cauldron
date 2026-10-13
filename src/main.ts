@@ -1,5 +1,5 @@
 import './styles/style.css';
-
+import { createPauseDialog } from './ui/pause-dialog';
 import { LEVEL_ONE_INGREDIENTS, type Ingredient } from './data/ingredients';
 import { isSuccessfulBrew } from './logic/brew';
 import { calculateCauldron } from './logic/calculate-cauldron';
@@ -103,7 +103,55 @@ function startTimerLoop(): void {
   lastRenderedSecond = null;
   timerFrame = requestAnimationFrame(timerTick);
 }
+function pauseGame(): void {
+  if (state.status !== 'playing' || state.endTime === null) {
+    return;
+  }
 
+  const timeLeft = calculateTimeLeft(state.endTime);
+
+  if (timeLeft <= 0) {
+    state = {
+      ...state,
+      timeLeft: 0,
+    };
+
+    gameOver('time');
+    return;
+  }
+
+  stopTimerLoop();
+
+  state = {
+    ...state,
+    status: 'paused',
+    timeLeft,
+    endTime: null,
+  };
+
+  render();
+}
+
+function resumeGame(): void {
+  if (state.status !== 'paused') {
+    return;
+  }
+
+  state = {
+    ...state,
+    status: 'playing',
+    endTime: createEndTime(state.timeLeft),
+  };
+
+  render();
+  startTimerLoop();
+}
+
+function exitToMenu(): void {
+  stopTimerLoop();
+  state = createMenuState();
+  render();
+}
 function startGame(): void {
   state = {
     status: 'playing',
@@ -210,7 +258,9 @@ function renderGame(): HTMLElement {
   const title = document.createElement('h1');
   title.className = 'game__title';
   title.textContent = "Alchemist's Cauldron";
-
+  if (state.status === 'paused') {
+    game.classList.add('game_paused');
+  }
   const cauldronIsFull = state.cauldronIngredients.length >= LEVEL_ONE_CAULDRON_CAPACITY;
 
   const cauldronValues = calculateCauldron(state.cauldronIngredients);
@@ -219,6 +269,7 @@ function renderGame(): HTMLElement {
     score: state.score,
     timeLeft: state.timeLeft,
     lives: state.lives,
+    onPause: pauseGame,
   });
 
   const content = document.createElement('div');
@@ -227,7 +278,7 @@ function renderGame(): HTMLElement {
   const shelf = createShelf({
     ingredients: LEVEL_ONE_INGREDIENTS,
     stock: state.shelfStock,
-    isBlocked: cauldronIsFull,
+    isBlocked: cauldronIsFull || state.status === 'paused',
     onIngredientClick: addIngredient,
   });
 
@@ -279,7 +330,23 @@ function render(): void {
     return;
   }
 
+  if (state.status === 'paused') {
+    appElement.replaceChildren(
+      renderGame(),
+      createPauseDialog({
+        onResume: resumeGame,
+        onExit: exitToMenu,
+      }),
+    );
+
+    return;
+  }
+
   appElement.replaceChildren(renderGame());
 }
-
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && state.status === 'playing') {
+    pauseGame();
+  }
+});
 render();
