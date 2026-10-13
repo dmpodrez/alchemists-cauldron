@@ -5,19 +5,24 @@ import { isSuccessfulBrew } from './logic/brew';
 import { calculateCauldron } from './logic/calculate-cauldron';
 import { addIngredientToCauldron, LEVEL_ONE_CAULDRON_CAPACITY } from './logic/cauldron';
 import { pickRandomRecipe } from './logic/recipe';
-import { createStock } from './logic/stock';
-import { createMenuState, type GameState } from './state/game-state';
+import { createStock, isShelfEmpty } from './logic/stock';
+import {
+  addTimeBonus,
+  calculateTimeLeft,
+  createEndTime,
+  LEVEL_ONE_START_TIME,
+} from './logic/timer';
+import { createMenuState, type GameOverReason, type GameState } from './state/game-state';
 import { createCauldron } from './ui/cauldron';
+import { createGameOverScreen } from './ui/game-over';
+import { createHud } from './ui/hud';
 import { createParameterBars } from './ui/parameter-bars';
 import { createRecipePanel } from './ui/recipe-panel';
 import { createShelf } from './ui/shelf';
 import { createStartScreen } from './ui/start-screen';
 
 const LEVEL_ONE_SCORE_PER_BREW = 200;
-const LEVEL_ONE_START_TIME = 150;
 const LEVEL_ONE_START_LIVES = 3;
-const LEVEL_ONE_TIME_BONUS = 10;
-const LEVEL_ONE_BONUS_CAP = 120;
 
 const app = document.querySelector<HTMLDivElement>('#app');
 
@@ -26,20 +31,94 @@ if (!app) {
 }
 
 const appElement = app;
+
 let state: GameState = createMenuState();
+let timerFrame: number | null = null;
+let lastRenderedSecond: number | null = null;
+
+function stopTimerLoop(): void {
+  if (timerFrame !== null) {
+    cancelAnimationFrame(timerFrame);
+    timerFrame = null;
+  }
+}
+
+function gameOver(reason: GameOverReason): void {
+  stopTimerLoop();
+
+  state = {
+    ...state,
+    status: 'game-over',
+    timeLeft: state.endTime === null ? state.timeLeft : calculateTimeLeft(state.endTime),
+    endTime: null,
+    gameOverReason: reason,
+  };
+
+  render();
+}
+
+function checkOutOfIngredients(): boolean {
+  if (state.cauldronIngredients.length === 0 && isShelfEmpty(state.shelfStock)) {
+    gameOver('ingredients');
+    return true;
+  }
+
+  return false;
+}
+
+function timerTick(): void {
+  if (state.status !== 'playing' || state.endTime === null) {
+    timerFrame = null;
+    return;
+  }
+
+  const timeLeft = calculateTimeLeft(state.endTime);
+
+  if (timeLeft <= 0) {
+    state = {
+      ...state,
+      timeLeft: 0,
+    };
+
+    gameOver('time');
+    return;
+  }
+
+  if (timeLeft !== lastRenderedSecond) {
+    lastRenderedSecond = timeLeft;
+
+    state = {
+      ...state,
+      timeLeft,
+    };
+
+    render();
+  }
+
+  timerFrame = requestAnimationFrame(timerTick);
+}
+
+function startTimerLoop(): void {
+  stopTimerLoop();
+  lastRenderedSecond = null;
+  timerFrame = requestAnimationFrame(timerTick);
+}
 
 function startGame(): void {
   state = {
     status: 'playing',
     score: 0,
     timeLeft: LEVEL_ONE_START_TIME,
+    endTime: createEndTime(LEVEL_ONE_START_TIME),
     lives: LEVEL_ONE_START_LIVES,
     activeRecipe: pickRandomRecipe('medium'),
     cauldronIngredients: [],
     shelfStock: createStock(LEVEL_ONE_INGREDIENTS),
+    gameOverReason: null,
   };
 
   render();
+  startTimerLoop();
 }
 
 function addIngredient(ingredient: Ingredient): void {
@@ -62,12 +141,19 @@ function addIngredient(ingredient: Ingredient): void {
   render();
 }
 
-function addTimeBonus(timeLeft: number): number {
-  if (timeLeft >= LEVEL_ONE_BONUS_CAP) {
-    return timeLeft;
+function applyTimeBonus(): void {
+  if (state.endTime === null) {
+    return;
   }
 
-  return Math.min(timeLeft + LEVEL_ONE_TIME_BONUS, LEVEL_ONE_BONUS_CAP);
+  const currentTime = calculateTimeLeft(state.endTime);
+  const nextTime = addTimeBonus(currentTime);
+
+  state = {
+    ...state,
+    timeLeft: nextTime,
+    endTime: createEndTime(nextTime),
+  };
 }
 
 function brew(): void {
@@ -82,16 +168,32 @@ function brew(): void {
     state = {
       ...state,
       score: state.score + LEVEL_ONE_SCORE_PER_BREW,
-      timeLeft: addTimeBonus(state.timeLeft),
       cauldronIngredients: [],
       activeRecipe: pickRandomRecipe('medium'),
     };
+
+    applyTimeBonus();
+
+    if (checkOutOfIngredients()) {
+      return;
+    }
   } else {
+    const nextLives = Math.max(0, state.lives - 1);
+
     state = {
       ...state,
-      lives: Math.max(0, state.lives - 1),
+      lives: nextLives,
       cauldronIngredients: [],
     };
+
+    if (nextLives === 0) {
+      gameOver('lives');
+      return;
+    }
+
+    if (checkOutOfIngredients()) {
+      return;
+    }
   }
 
   render();
@@ -109,12 +211,18 @@ function renderGame(): HTMLElement {
   title.className = 'game__title';
   title.textContent = "Alchemist's Cauldron";
 
-  const content = document.createElement('div');
-  content.className = 'game__content';
-
   const cauldronIsFull = state.cauldronIngredients.length >= LEVEL_ONE_CAULDRON_CAPACITY;
 
   const cauldronValues = calculateCauldron(state.cauldronIngredients);
+
+  const hud = createHud({
+    score: state.score,
+    timeLeft: state.timeLeft,
+    lives: state.lives,
+  });
+
+  const content = document.createElement('div');
+  content.className = 'game__content';
 
   const shelf = createShelf({
     ingredients: LEVEL_ONE_INGREDIENTS,
@@ -131,7 +239,6 @@ function renderGame(): HTMLElement {
       recipe: state.activeRecipe,
       ingredientCount: state.cauldronIngredients.length,
       capacity: LEVEL_ONE_CAULDRON_CAPACITY,
-      score: state.score,
       onBrew: brew,
     }),
     createCauldron({
@@ -141,8 +248,7 @@ function renderGame(): HTMLElement {
   );
 
   content.append(shelf, rightColumn);
-
-  game.append(title, content);
+  game.append(title, hud, content);
 
   return game;
 }
@@ -154,6 +260,22 @@ function render(): void {
         onStart: startGame,
       }),
     );
+    return;
+  }
+
+  if (state.status === 'game-over') {
+    if (!state.gameOverReason) {
+      throw new Error('Game Over requires a reason.');
+    }
+
+    appElement.replaceChildren(
+      createGameOverScreen({
+        score: state.score,
+        reason: state.gameOverReason,
+        onPlayAgain: startGame,
+      }),
+    );
+
     return;
   }
 
