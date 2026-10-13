@@ -2,29 +2,15 @@ import type { Ingredient } from '../data/ingredients';
 
 interface CauldronOptions {
   ingredients: readonly Ingredient[];
-  capacity: number;
 }
 
-export function createCauldron({ ingredients, capacity }: CauldronOptions): HTMLElement {
+export function createCauldron({ ingredients }: CauldronOptions): HTMLElement {
   const section = document.createElement('section');
   section.className = 'cauldron';
-
-  const header = document.createElement('div');
-  header.className = 'cauldron__header';
 
   const title = document.createElement('h2');
   title.className = 'section-title';
   title.textContent = 'Cauldron';
-
-  const counter = document.createElement('strong');
-  counter.className = 'cauldron__counter';
-  counter.textContent = `Ingredients: ${ingredients.length} / ${capacity}`;
-
-  if (ingredients.length >= capacity) {
-    counter.classList.add('cauldron__counter_full');
-  }
-
-  header.append(title, counter);
 
   const bowl = document.createElement('div');
   bowl.className = 'cauldron__bowl';
@@ -48,7 +34,7 @@ export function createCauldron({ ingredients, capacity }: CauldronOptions): HTML
     bowl.append(list);
   }
 
-  section.append(header, bowl);
+  section.append(title, bowl);
 
   return section;
 }
