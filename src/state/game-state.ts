@@ -2,7 +2,7 @@ import type { Ingredient } from '../data/ingredients';
 import type { Recipe } from '../data/recipes';
 import type { ShelfStock } from '../logic/stock';
 
-export type GameStatus = 'menu' | 'playing' | 'game-over';
+export type GameStatus = 'menu' | 'playing' | 'paused' | 'game-over';
 
 export type GameOverReason = 'time' | 'lives' | 'ingredients';
 

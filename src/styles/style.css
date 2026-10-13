@@ -571,3 +571,105 @@ button {
     grid-row: auto;
   }
 }
+.hud {
+  grid-template-columns: 140px minmax(220px, 1fr) 140px auto;
+}
+
+.hud__pause {
+  align-self: stretch;
+  padding: 0 22px;
+  border: 1px solid #d7ad56;
+  border-radius: 14px;
+  background: transparent;
+  color: #d7ad56;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hud__pause:hover {
+  background: rgb(215 173 86 / 12%);
+}
+
+.game_paused {
+  filter: blur(8px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.pause-overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(10 8 14 / 68%);
+}
+
+.pause-dialog {
+  width: min(460px, 100%);
+  padding: 36px;
+  border: 1px solid #70667d;
+  border-radius: 24px;
+  background: #24202d;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 45%);
+  text-align: center;
+}
+
+.pause-dialog__eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: #d7ad56;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pause-dialog__title {
+  margin: 0;
+  font-size: 36px;
+}
+
+.pause-dialog__text {
+  margin: 16px 0 28px;
+  color: #b9b1c2;
+  line-height: 1.6;
+}
+
+.pause-dialog__actions {
+  display: grid;
+  gap: 12px;
+}
+
+.pause-dialog__button {
+  padding: 12px 18px;
+  border: 1px solid #70667d;
+  border-radius: 12px;
+  background: #1b1721;
+  color: #f7f2e8;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pause-dialog__button_primary {
+  border-color: #d7ad56;
+  background: #d7ad56;
+  color: #17141f;
+}
+
+@media (max-width: 700px) {
+  .hud {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hud__pause {
+    min-height: 52px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hud {
+    grid-template-columns: 1fr;
+  }
+}

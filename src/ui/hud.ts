@@ -4,9 +4,10 @@ interface HudOptions {
   score: number;
   timeLeft: number;
   lives: number;
+  onPause: () => void;
 }
 
-export function createHud({ score, timeLeft, lives }: HudOptions): HTMLElement {
+export function createHud({ score, timeLeft, lives, onPause }: HudOptions): HTMLElement {
   const hud = document.createElement('section');
   hud.className = 'hud';
 
@@ -70,7 +71,13 @@ export function createHud({ score, timeLeft, lives }: HudOptions): HTMLElement {
 
   livesItem.append(livesLabel, livesValue);
 
-  hud.append(scoreItem, timerItem, livesItem);
+  const pauseButton = document.createElement('button');
+  pauseButton.className = 'hud__pause';
+  pauseButton.type = 'button';
+  pauseButton.textContent = 'Pause';
+  pauseButton.addEventListener('click', onPause);
+
+  hud.append(scoreItem, timerItem, livesItem, pauseButton);
 
   return hud;
 }
