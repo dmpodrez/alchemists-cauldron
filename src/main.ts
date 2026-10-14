@@ -20,6 +20,14 @@ import { createParameterBars } from './ui/parameter-bars';
 import { createRecipePanel } from './ui/recipe-panel';
 import { createShelf } from './ui/shelf';
 import { createStartScreen } from './ui/start-screen';
+import {
+  addLeaderboardEntry,
+  clearLeaderboard,
+  isValidPlayerName,
+  loadLeaderboard,
+  qualifiesForLeaderboard,
+} from './storage/leaderboard';
+import { createLeaderboardDialog } from './ui/leaderboard-dialog';
 
 const LEVEL_ONE_SCORE_PER_BREW = 200;
 const LEVEL_ONE_START_LIVES = 3;
@@ -35,7 +43,7 @@ const appElement = app;
 let state: GameState = createMenuState();
 let timerFrame: number | null = null;
 let lastRenderedSecond: number | null = null;
-
+let scoreSubmittedForCurrentRun = false;
 function stopTimerLoop(): void {
   if (timerFrame !== null) {
     cancelAnimationFrame(timerFrame);
@@ -153,6 +161,7 @@ function exitToMenu(): void {
   render();
 }
 function startGame(): void {
+  scoreSubmittedForCurrentRun = false;
   state = {
     status: 'playing',
     score: 0,
@@ -168,7 +177,41 @@ function startGame(): void {
   render();
   startTimerLoop();
 }
+function openLeaderboard(): void {
+  const existingDialog = appElement.querySelector('.leaderboard-overlay');
 
+  existingDialog?.remove();
+
+  const closeLeaderboard = (): void => {
+    appElement.querySelector('.leaderboard-overlay')?.remove();
+  };
+
+  const dialog = createLeaderboardDialog({
+    entries: loadLeaderboard(),
+    onClose: closeLeaderboard,
+    onClear: clearLeaderboard,
+  });
+
+  appElement.append(dialog);
+}
+
+function submitLeaderboardScore(name: string): string | null {
+  const normalizedName = name.trim();
+
+  if (!isValidPlayerName(normalizedName)) {
+    return 'Use 2–15 characters: letters, digits, space, _ or -.';
+  }
+
+  const saved = addLeaderboardEntry(normalizedName, state.score);
+
+  if (!saved) {
+    return 'The score could not be saved. Storage may be unavailable.';
+  }
+
+  scoreSubmittedForCurrentRun = true;
+
+  return null;
+}
 function addIngredient(ingredient: Ingredient): void {
   if (state.status !== 'playing') {
     return;
@@ -309,6 +352,7 @@ function render(): void {
     appElement.replaceChildren(
       createStartScreen({
         onStart: startGame,
+        onLeaderboard: openLeaderboard,
       }),
     );
     return;
@@ -319,11 +363,16 @@ function render(): void {
       throw new Error('Game Over requires a reason.');
     }
 
+    const askForName = !scoreSubmittedForCurrentRun && qualifiesForLeaderboard(state.score);
+
     appElement.replaceChildren(
       createGameOverScreen({
         score: state.score,
         reason: state.gameOverReason,
+        askForName,
+        onSubmitScore: submitLeaderboardScore,
         onPlayAgain: startGame,
+        onLeaderboard: openLeaderboard,
       }),
     );
 
