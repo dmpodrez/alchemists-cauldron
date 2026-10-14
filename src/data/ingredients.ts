@@ -1,7 +1,13 @@
+import dragonTearsImage from '../assets/ingredients/dragon-tears.png';
+import fairyDustImage from '../assets/ingredients/fairy-dust.png';
+import frostLotusImage from '../assets/ingredients/frost-lotus.png';
+import mandrakeRootImage from '../assets/ingredients/mandrake-root.png';
+import causticAcidImage from '../assets/ingredients/caustic-acid.png';
+import essenceVoidImage from '../assets/ingredients/essence-of-the-void.png';
 export interface Ingredient {
   id: string;
   name: string;
-  icon: string;
+  image: string;
   temperature: number;
   density: number;
   magicPower: number;
@@ -11,7 +17,7 @@ export const INGREDIENTS: readonly Ingredient[] = [
   {
     id: 'dragon-tears',
     name: 'Dragon Tears',
-    icon: '💧',
+    image: dragonTearsImage,
     temperature: 25,
     density: 8,
     magicPower: 10,
@@ -19,7 +25,7 @@ export const INGREDIENTS: readonly Ingredient[] = [
   {
     id: 'fairy-dust',
     name: 'Fairy Dust',
-    icon: '✦',
+    image: fairyDustImage,
     temperature: 12,
     density: 9,
     magicPower: 12,
@@ -27,7 +33,7 @@ export const INGREDIENTS: readonly Ingredient[] = [
   {
     id: 'frost-lotus',
     name: 'Frost Lotus',
-    icon: '❄',
+    image: frostLotusImage,
     temperature: -18,
     density: 4,
     magicPower: 14,
@@ -35,7 +41,7 @@ export const INGREDIENTS: readonly Ingredient[] = [
   {
     id: 'mandrake-root',
     name: 'Mandrake Root',
-    icon: '♣',
+    image: mandrakeRootImage,
     temperature: -5,
     density: 20,
     magicPower: 8,
@@ -43,7 +49,7 @@ export const INGREDIENTS: readonly Ingredient[] = [
   {
     id: 'caustic-acid',
     name: 'Caustic Acid',
-    icon: '⚗',
+    image: causticAcidImage,
     temperature: 10,
     density: 14,
     magicPower: 22,
@@ -51,26 +57,10 @@ export const INGREDIENTS: readonly Ingredient[] = [
   {
     id: 'essence-of-the-void',
     name: 'Essence of the Void',
-    icon: '●',
+    image: essenceVoidImage,
     temperature: -20,
     density: -10,
     magicPower: 40,
-  },
-  {
-    id: 'phoenix-feather',
-    name: 'Phoenix Feather',
-    icon: '◆',
-    temperature: 50,
-    density: -10,
-    magicPower: 30,
-  },
-  {
-    id: 'toad-slime',
-    name: 'Toad Slime',
-    icon: '◉',
-    temperature: 5,
-    density: 30,
-    magicPower: 0,
   },
 ];
 

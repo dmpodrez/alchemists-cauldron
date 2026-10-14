@@ -41,9 +41,15 @@ export function createShelf({
       button.classList.add('ingredient-card_empty');
     }
 
-    const icon = document.createElement('span');
-    icon.className = 'ingredient-card__icon';
-    icon.textContent = isEmpty ? '' : ingredient.icon;
+    const image = document.createElement('img');
+    image.className = 'ingredient-card__image';
+    image.src = ingredient.image;
+    image.alt = ingredient.name;
+    image.draggable = false;
+
+    if (isEmpty) {
+      image.classList.add('ingredient-card__image_empty');
+    }
 
     const name = document.createElement('span');
     name.className = 'ingredient-card__name';
@@ -61,7 +67,7 @@ export function createShelf({
     badge.className = 'ingredient-card__stock';
     badge.textContent = String(amount);
 
-    button.append(icon, name, stats, badge);
+    button.append(image, name, stats, badge);
     button.addEventListener('click', () => onIngredientClick(ingredient));
 
     list.append(button);
