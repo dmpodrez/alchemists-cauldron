@@ -1,8 +1,9 @@
 interface StartScreenOptions {
   onStart: () => void;
+  onLeaderboard: () => void;
 }
 
-export function createStartScreen({ onStart }: StartScreenOptions): HTMLElement {
+export function createStartScreen({ onStart, onLeaderboard }: StartScreenOptions): HTMLElement {
   const screen = document.createElement('main');
   screen.className = 'start-screen';
 
@@ -22,13 +23,23 @@ export function createStartScreen({ onStart }: StartScreenOptions): HTMLElement 
   text.textContent =
     'Combine ingredients and match all three recipe ranges before your resources run out.';
 
-  const button = document.createElement('button');
-  button.className = 'start-button';
-  button.type = 'button';
-  button.textContent = 'Start Game';
-  button.addEventListener('click', onStart);
+  const actions = document.createElement('div');
+  actions.className = 'start-screen__actions';
 
-  content.append(eyebrow, title, text, button);
+  const startButton = document.createElement('button');
+  startButton.className = 'start-button';
+  startButton.type = 'button';
+  startButton.textContent = 'Start Game';
+  startButton.addEventListener('click', onStart);
+
+  const leaderboardButton = document.createElement('button');
+  leaderboardButton.className = 'secondary-button';
+  leaderboardButton.type = 'button';
+  leaderboardButton.textContent = 'Leaderboard';
+  leaderboardButton.addEventListener('click', onLeaderboard);
+
+  actions.append(startButton, leaderboardButton);
+  content.append(eyebrow, title, text, actions);
   screen.append(content);
 
   return screen;
