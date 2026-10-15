@@ -4,10 +4,11 @@ import frostLotusImage from '../assets/ingredients/frost-lotus.png';
 import mandrakeRootImage from '../assets/ingredients/mandrake-root.png';
 import causticAcidImage from '../assets/ingredients/caustic-acid.png';
 import essenceVoidImage from '../assets/ingredients/essence-of-the-void.png';
+
 export interface Ingredient {
   id: string;
   name: string;
-  image: string;
+  image?: string;
   temperature: number;
   density: number;
   magicPower: number;
@@ -62,6 +63,8 @@ export const INGREDIENTS: readonly Ingredient[] = [
     density: -10,
     magicPower: 40,
   },
+  { id: 'phoenix-feather', name: 'Phoenix Feather', temperature: 50, density: -10, magicPower: 30 },
+  { id: 'toad-slime', name: 'Toad Slime', temperature: 5, density: 30, magicPower: 0 },
 ];
 
 export const LEVEL_ONE_INGREDIENTS = INGREDIENTS.slice(0, 6);

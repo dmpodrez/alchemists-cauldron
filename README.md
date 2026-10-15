@@ -1,30 +1,60 @@
 # 🧪 Alchemist's Cauldron
 
-Alchemist's Cauldron is a browser game where the player combines ingredients to brew potions.
+Alchemist's Cauldron is a browser game built with TypeScript. The player combines limited-stock ingredients and tries to match the Temperature, Density and Magic Power ranges of the current recipe before time, lives or ingredients run out.
 
-Each ingredient changes three cauldron parameters:
+This repository currently contains the completed **Level 1 — Basic** gameplay.
 
-- Temperature
-- Density
-- Magic Power
+## Implemented
 
-The goal is to combine ingredients so all three values match the target ranges of the current recipe.
+- Start screen with **Start Game**, **Help** and **Leaderboard**
+- 6 Level 1 ingredient cards from the fixed 8-item catalogue
+- Random ingredient stock from **2 to 15** for every new run
+- Cauldron with a maximum capacity of **4** ingredients
+- Temperature, Density and Magic Power calculations
+- Recipe target zones and current-value markers
+- Fixed 20-recipe catalogue
+- Level 1 Medium recipe selection
+- Brew validation with **±8** tolerance
+- **200 points** for a successful brew
+- **+10 seconds** time bonus after a successful brew
+- **150 second** timestamp-based timer
+- **3 lives**
+- Pause / Resume / Exit to Menu flow
+- Automatic pause when the browser tab becomes hidden
+- Game Over reasons for time, lives and depleted ingredients
+- Top-10 leaderboard stored in `localStorage`
+- Player-name validation
+- Custom leaderboard clear confirmation
+- Responsive layout for desktop and mobile widths
+- ESLint, Prettier, Husky and Commitlint
 
-## Status
+## How to play
 
-The project is currently in the technical setup stage.
+1. Press **Start Game**.
+2. Read the current recipe and its three target ranges.
+3. Select ingredients from the shelf. Every selected ingredient reduces its stock by one.
+4. Watch the cauldron parameter bars update.
+5. Add up to four ingredients.
+6. Press **Brew**.
+7. A successful brew awards 200 points, adds a time bonus and gives a new recipe.
+8. A failed brew costs one life. The used ingredients are still spent.
+9. Continue until the timer reaches zero, all lives are lost, or the ingredient shelf and cauldron are empty.
 
-Implemented:
+The **Help** button on the start screen also shows the Level 1 rules in-game.
 
-- Vite development and production setup
-- TypeScript with strict type checking
-- ESLint
-- Prettier
-- Husky Git hooks
-- Commit message validation
-- Initial project structure
+## Level 1 rules
 
-Gameplay will be implemented progressively according to the RS School task stories.
+| Rule                            |  Value |
+| ------------------------------- | -----: |
+| Difficulty rules                | Medium |
+| Shelf ingredients               |      6 |
+| Random stock per ingredient     |   2–15 |
+| Maximum ingredients in cauldron |      4 |
+| Starting time                   |  150 s |
+| Starting lives                  |      3 |
+| Brew tolerance                  |     ±8 |
+| Score per successful brew       |    200 |
+| Time bonus                      |  +10 s |
 
 ## Technologies
 
@@ -37,23 +67,23 @@ Gameplay will be implemented progressively according to the RS School task stori
 - Husky
 - Commitlint
 
-No JavaScript frameworks, CSS frameworks or game engines are used.
+No JavaScript framework, CSS framework or game engine is used.
 
 ## Project structure
 
 ```text
 src/
-  assets/
-  data/
-  logic/
-  state/
-  storage/
-  styles/
-  ui/
-  main.ts
+  assets/       visual assets
+  data/         ingredients and recipes
+  logic/        pure gameplay logic
+  state/        game state types and initial state
+  storage/      leaderboard persistence
+  styles/       application styles
+  ui/           DOM rendering components
+  main.ts       application flow and state transitions
 ```
 
-Game logic is kept separate from DOM rendering.
+Game rules and calculations are kept separate from DOM rendering.
 
 ## Run locally
 
@@ -82,23 +112,19 @@ npm run lint
 npm run format:check
 ```
 
-## Gameplay
+## Controls
 
-The complete game will include:
+Level 1 is mouse / pointer based:
 
-- ingredient shelf and cauldron;
-- potion recipes;
-- Temperature, Density and Magic Power parameters;
-- ingredient stock;
-- timer and lives;
-- score system;
-- pause;
-- leaderboard;
-- difficulty levels;
-- save and continue;
-- drag and drop;
-- chemical reactions;
-- keyboard controls.
+- click an ingredient card to add one portion to the cauldron;
+- click **Brew** to check the mixture;
+- click **Pause** to stop the run;
+- use **Resume** or **Exit to Menu** from the pause dialog;
+- open **Leaderboard** from the start screen or Game Over screen.
+
+## Persistence
+
+The Level 1 Top-10 leaderboard is stored in browser `localStorage`. Invalid or corrupted leaderboard data is handled without crashing the game.
 
 ## Task
 

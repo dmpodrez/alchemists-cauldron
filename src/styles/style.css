@@ -24,7 +24,6 @@
   --alchemy-muted: #aaa0b0;
   --alchemy-shadow: rgb(0 0 0 / 38%);
 
-  font-family: Arial, Helvetica, sans-serif;
   color: var(--color-text);
   background: var(--color-background);
 }
@@ -5008,5 +5007,199 @@ input,
   .leaderboard-table__row {
     animation: none;
     transition: none;
+  }
+}
+/* START SCREEN — HELP */
+
+.start-screen__secondary-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.help-overlay {
+  position: fixed;
+  z-index: 1500;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(5 3 8 / 76%);
+  backdrop-filter: blur(8px);
+}
+
+.help-dialog {
+  position: relative;
+  width: min(560px, 100%);
+  padding: 32px 32px 28px;
+  border: 1px solid rgb(205 155 88 / 42%);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 0%, rgb(216 170 96 / 8%), transparent 38%),
+    linear-gradient(180deg, rgb(35 25 41 / 96%), rgb(17 12 23 / 98%));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 4%),
+    0 30px 90px rgb(0 0 0 / 64%);
+}
+
+.help-dialog::before {
+  position: absolute;
+  top: 0;
+  left: 14%;
+  width: 72%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #f0c778, transparent);
+  content: '';
+  opacity: 0.75;
+}
+
+.help-dialog__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgb(205 155 88 / 38%);
+  border-radius: 50%;
+  background: rgb(13 9 17 / 54%);
+  color: #c0b4c4;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.help-dialog__close:hover {
+  border-color: #d9ad63;
+  color: #f0c778;
+}
+
+.help-dialog__eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: #d9ad63;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.help-dialog__title {
+  margin: 0 46px 22px 0;
+  color: #f3ead7;
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 600;
+}
+
+.help-dialog__rules {
+  margin: 0;
+  padding-left: 22px;
+  color: #d5c9d5;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.help-dialog__rules li + li {
+  margin-top: 9px;
+}
+
+.help-dialog__rules li::marker {
+  color: #d9ad63;
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+.help-dialog__note {
+  margin: 20px 0 0;
+  padding: 12px 14px;
+  border: 1px solid rgb(216 170 96 / 18%);
+  border-radius: 9px;
+  background: rgb(216 170 96 / 6%);
+  color: #bfb1c2;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.help-dialog__done {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 20px;
+  border: 1px solid #efc56d;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #e4b554, #bd7f2d);
+  color: #241307;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.help-dialog__done:hover {
+  background: linear-gradient(180deg, #f0c96f, #cb8c36);
+}
+
+@media (max-width: 520px) {
+  .start-screen__secondary-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .help-dialog {
+    padding: 28px 20px 24px;
+  }
+
+  .help-dialog__title {
+    font-size: 28px;
+  }
+
+  .help-dialog__rules {
+    font-size: 13px;
+  }
+}
+/* =========================================================
+   MOBILE HORIZONTAL OVERFLOW FIX
+   ========================================================= */
+
+.game_paused {
+  transform: none;
+}
+
+/*
+ * Steam is decorative and may animate outside the cauldron,
+ * but it must not expand the page horizontally.
+ */
+.game__center-column {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.cauldron-section,
+.cauldron-visual {
+  max-width: 100%;
+}
+
+@media (max-width: 480px) {
+  .game {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .game__content,
+  .shelf,
+  .game__center-column,
+  .game__right-column {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+@media (max-width: 480px) {
+  .cauldron-steam {
+    max-width: 100%;
+    overflow: clip;
   }
 }
