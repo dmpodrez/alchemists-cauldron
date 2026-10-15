@@ -6,11 +6,7 @@ interface LeaderboardDialogOptions {
   onClear: () => boolean;
 }
 
-function createActionButton(
-  text: string,
-  className: string,
-  icon: string,
-): HTMLButtonElement {
+function createActionButton(text: string, className: string, icon: string): HTMLButtonElement {
   const button = document.createElement('button');
   button.className = className;
   button.type = 'button';
@@ -155,11 +151,7 @@ export function createLeaderboardDialog({
   const actions = document.createElement('div');
   actions.className = 'leaderboard-dialog__actions';
 
-  const clearButton = createActionButton(
-    'Clear Leaderboard',
-    'leaderboard-dialog__clear',
-    '♜',
-  );
+  const clearButton = createActionButton('Clear Leaderboard', 'leaderboard-dialog__clear', '♜');
   clearButton.disabled = entries.length === 0;
 
   const doneButton = createActionButton(
@@ -194,21 +186,13 @@ export function createLeaderboardDialog({
     const confirmationActions = document.createElement('div');
     confirmationActions.className = 'confirmation-dialog__actions';
 
-    const cancelButton = createActionButton(
-      'Cancel',
-      'leaderboard-dialog__button',
-      '×',
-    );
+    const cancelButton = createActionButton('Cancel', 'leaderboard-dialog__button', '×');
     cancelButton.addEventListener('click', () => {
       confirmation.remove();
       clearButton.focus();
     });
 
-    const confirmButton = createActionButton(
-      'Clear',
-      'leaderboard-dialog__clear',
-      '♜',
-    );
+    const confirmButton = createActionButton('Clear', 'leaderboard-dialog__clear', '♜');
 
     confirmButton.addEventListener('click', () => {
       const cleared = onClear();
