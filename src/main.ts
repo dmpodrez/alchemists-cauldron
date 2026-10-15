@@ -5,15 +5,13 @@ import '@fontsource/inter/400.css';
 import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
-
-import './styles/style.css';
+import { pickNextRecipe, pickRandomRecipe } from './logic/recipe';
 import './styles/style.css';
 import { createPauseDialog } from './ui/pause-dialog';
 import { LEVEL_ONE_INGREDIENTS, type Ingredient } from './data/ingredients';
 import { isSuccessfulBrew } from './logic/brew';
 import { calculateCauldron } from './logic/calculate-cauldron';
 import { addIngredientToCauldron, LEVEL_ONE_CAULDRON_CAPACITY } from './logic/cauldron';
-import { pickRandomRecipe } from './logic/recipe';
 import { createStock, isShelfEmpty } from './logic/stock';
 import {
   addTimeBonus,
@@ -287,15 +285,16 @@ function brew(): void {
     return;
   }
 
+  const currentRecipe = state.activeRecipe;
   const values = calculateCauldron(state.cauldronIngredients);
-  const success = isSuccessfulBrew(values, state.activeRecipe);
+  const success = isSuccessfulBrew(values, currentRecipe);
 
   if (success) {
     state = {
       ...state,
       score: state.score + LEVEL_ONE_SCORE_PER_BREW,
       cauldronIngredients: [],
-      activeRecipe: pickRandomRecipe('medium'),
+      activeRecipe: pickNextRecipe('medium', currentRecipe.id),
     };
 
     applyTimeBonus();
@@ -306,16 +305,23 @@ function brew(): void {
   } else {
     const nextLives = Math.max(0, state.lives - 1);
 
+    if (nextLives === 0) {
+      state = {
+        ...state,
+        lives: 0,
+        cauldronIngredients: [],
+      };
+
+      gameOver('lives');
+      return;
+    }
+
     state = {
       ...state,
       lives: nextLives,
       cauldronIngredients: [],
+      activeRecipe: pickNextRecipe('medium', currentRecipe.id),
     };
-
-    if (nextLives === 0) {
-      gameOver('lives');
-      return;
-    }
 
     if (checkOutOfIngredients()) {
       return;

@@ -6,6 +6,28 @@ interface LeaderboardDialogOptions {
   onClear: () => boolean;
 }
 
+function createActionButton(
+  text: string,
+  className: string,
+  icon: string,
+): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.className = className;
+  button.type = 'button';
+
+  const iconElement = document.createElement('span');
+  iconElement.className = 'leaderboard-dialog__button-icon';
+  iconElement.textContent = icon;
+  iconElement.setAttribute('aria-hidden', 'true');
+
+  const label = document.createElement('span');
+  label.textContent = text;
+
+  button.append(iconElement, label);
+
+  return button;
+}
+
 export function createLeaderboardDialog({
   entries,
   onClose,
@@ -24,17 +46,22 @@ export function createLeaderboardDialog({
   header.className = 'leaderboard-dialog__header';
 
   const headingGroup = document.createElement('div');
+  headingGroup.className = 'leaderboard-dialog__heading';
 
   const eyebrow = document.createElement('span');
   eyebrow.className = 'leaderboard-dialog__eyebrow';
-  eyebrow.textContent = 'Hall of alchemists';
+  eyebrow.textContent = 'Hall of Alchemists';
 
   const title = document.createElement('h2');
   title.id = 'leaderboard-title';
   title.className = 'leaderboard-dialog__title';
   title.textContent = 'Leaderboard';
 
-  headingGroup.append(eyebrow, title);
+  const ornament = document.createElement('div');
+  ornament.className = 'leaderboard-dialog__ornament';
+  ornament.setAttribute('aria-hidden', 'true');
+
+  headingGroup.append(eyebrow, title, ornament);
 
   const closeButton = document.createElement('button');
   closeButton.className = 'leaderboard-dialog__close';
@@ -70,8 +97,9 @@ export function createLeaderboardDialog({
 
     if (currentEntries.length === 0) {
       const row = document.createElement('tr');
-      const cell = document.createElement('td');
+      row.className = 'leaderboard-table__empty-row';
 
+      const cell = document.createElement('td');
       cell.colSpan = 4;
       cell.className = 'leaderboard-table__empty';
       cell.textContent = 'No scores yet. Brew your first potion!';
@@ -83,17 +111,31 @@ export function createLeaderboardDialog({
 
     currentEntries.forEach((entry, index) => {
       const row = document.createElement('tr');
+      row.className = 'leaderboard-table__row';
+
+      if (index < 3) {
+        row.classList.add(`leaderboard-table__row_rank-${index + 1}`);
+      }
 
       const rank = document.createElement('td');
-      rank.textContent = String(index + 1);
+      rank.className = 'leaderboard-table__rank';
+
+      const rankBadge = document.createElement('span');
+      rankBadge.className = 'leaderboard-table__rank-badge';
+      rankBadge.textContent = String(index + 1);
+
+      rank.append(rankBadge);
 
       const name = document.createElement('td');
+      name.className = 'leaderboard-table__player';
       name.textContent = entry.name;
 
       const score = document.createElement('td');
+      score.className = 'leaderboard-table__score';
       score.textContent = String(entry.score);
 
       const date = document.createElement('td');
+      date.className = 'leaderboard-table__date';
       date.textContent = formatLeaderboardDate(entry.createdAt);
 
       row.append(rank, name, score, date);
@@ -113,16 +155,18 @@ export function createLeaderboardDialog({
   const actions = document.createElement('div');
   actions.className = 'leaderboard-dialog__actions';
 
-  const clearButton = document.createElement('button');
-  clearButton.className = 'leaderboard-dialog__clear';
-  clearButton.type = 'button';
-  clearButton.textContent = 'Clear Leaderboard';
+  const clearButton = createActionButton(
+    'Clear Leaderboard',
+    'leaderboard-dialog__clear',
+    '♜',
+  );
   clearButton.disabled = entries.length === 0;
 
-  const doneButton = document.createElement('button');
-  doneButton.className = 'leaderboard-dialog__button leaderboard-dialog__button_primary';
-  doneButton.type = 'button';
-  doneButton.textContent = 'Done';
+  const doneButton = createActionButton(
+    'Done',
+    'leaderboard-dialog__button leaderboard-dialog__button_primary',
+    '◆',
+  );
   doneButton.addEventListener('click', onClose);
 
   clearButton.addEventListener('click', () => {
@@ -133,8 +177,15 @@ export function createLeaderboardDialog({
     confirmationDialog.className = 'confirmation-dialog';
     confirmationDialog.setAttribute('role', 'alertdialog');
     confirmationDialog.setAttribute('aria-modal', 'true');
+    confirmationDialog.setAttribute('aria-labelledby', 'clear-leaderboard-title');
+
+    const confirmationMark = document.createElement('div');
+    confirmationMark.className = 'confirmation-dialog__mark';
+    confirmationMark.textContent = '!';
+    confirmationMark.setAttribute('aria-hidden', 'true');
 
     const confirmationTitle = document.createElement('h3');
+    confirmationTitle.id = 'clear-leaderboard-title';
     confirmationTitle.textContent = 'Clear leaderboard?';
 
     const confirmationText = document.createElement('p');
@@ -143,18 +194,21 @@ export function createLeaderboardDialog({
     const confirmationActions = document.createElement('div');
     confirmationActions.className = 'confirmation-dialog__actions';
 
-    const cancelButton = document.createElement('button');
-    cancelButton.className = 'leaderboard-dialog__button';
-    cancelButton.type = 'button';
-    cancelButton.textContent = 'Cancel';
+    const cancelButton = createActionButton(
+      'Cancel',
+      'leaderboard-dialog__button',
+      '×',
+    );
     cancelButton.addEventListener('click', () => {
       confirmation.remove();
+      clearButton.focus();
     });
 
-    const confirmButton = document.createElement('button');
-    confirmButton.className = 'leaderboard-dialog__clear';
-    confirmButton.type = 'button';
-    confirmButton.textContent = 'Clear';
+    const confirmButton = createActionButton(
+      'Clear',
+      'leaderboard-dialog__clear',
+      '♜',
+    );
 
     confirmButton.addEventListener('click', () => {
       const cleared = onClear();
@@ -172,8 +226,12 @@ export function createLeaderboardDialog({
     });
 
     confirmationActions.append(cancelButton, confirmButton);
-
-    confirmationDialog.append(confirmationTitle, confirmationText, confirmationActions);
+    confirmationDialog.append(
+      confirmationMark,
+      confirmationTitle,
+      confirmationText,
+      confirmationActions,
+    );
 
     confirmation.append(confirmationDialog);
     overlay.append(confirmation);
@@ -182,9 +240,7 @@ export function createLeaderboardDialog({
   });
 
   actions.append(clearButton, doneButton);
-
   dialog.append(header, tableWrapper, status, actions);
-
   overlay.append(dialog);
 
   requestAnimationFrame(() => {
