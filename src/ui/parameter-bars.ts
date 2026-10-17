@@ -7,6 +7,7 @@ interface ParameterConfig {
   min: number;
   max: number;
   supportsNegative: boolean;
+  tone: 'temperature' | 'density' | 'magic';
 }
 
 const PARAMETER_CONFIGS: readonly ParameterConfig[] = [
@@ -16,6 +17,7 @@ const PARAMETER_CONFIGS: readonly ParameterConfig[] = [
     min: -100,
     max: 100,
     supportsNegative: true,
+    tone: 'temperature',
   },
   {
     key: 'density',
@@ -23,6 +25,7 @@ const PARAMETER_CONFIGS: readonly ParameterConfig[] = [
     min: -100,
     max: 100,
     supportsNegative: true,
+    tone: 'density',
   },
   {
     key: 'magicPower',
@@ -30,6 +33,7 @@ const PARAMETER_CONFIGS: readonly ParameterConfig[] = [
     min: 0,
     max: 200,
     supportsNegative: false,
+    tone: 'magic',
   },
 ];
 
@@ -53,7 +57,7 @@ function createParameterBar(
   target: ParameterRange,
 ): HTMLElement {
   const item = document.createElement('div');
-  item.className = 'parameter-bar';
+  item.className = `parameter-bar parameter-bar_${config.tone}`;
 
   const header = document.createElement('div');
   header.className = 'parameter-bar__header';
@@ -95,7 +99,6 @@ function createParameterBar(
     const zeroLine = document.createElement('span');
     zeroLine.className = 'parameter-bar__zero';
     zeroLine.style.left = `${toPercent(0, config.min, config.max)}%`;
-
     track.append(zeroLine);
   }
 
@@ -113,7 +116,6 @@ function createParameterBar(
   maximum.textContent = String(config.max);
 
   limits.append(minimum, targetText, maximum);
-
   item.append(header, track, limits);
 
   return item;
@@ -123,9 +125,18 @@ export function createParameterBars(values: CauldronValues, targets: RecipeTarge
   const section = document.createElement('section');
   section.className = 'parameters';
 
+  const heading = document.createElement('div');
+  heading.className = 'parameters__heading';
+
+  const eyebrow = document.createElement('span');
+  eyebrow.className = 'parameters__eyebrow';
+  eyebrow.textContent = 'Brew Analysis';
+
   const title = document.createElement('h2');
-  title.className = 'section-title';
+  title.className = 'section-title parameters__title';
   title.textContent = 'Cauldron Parameters';
+
+  heading.append(eyebrow, title);
 
   const list = document.createElement('div');
   list.className = 'parameters__list';
@@ -134,7 +145,7 @@ export function createParameterBars(values: CauldronValues, targets: RecipeTarge
     list.append(createParameterBar(config, values[config.key], targets[config.key]));
   }
 
-  section.append(title, list);
+  section.append(heading, list);
 
   return section;
 }

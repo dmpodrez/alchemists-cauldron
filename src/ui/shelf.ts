@@ -12,6 +12,25 @@ function formatValue(value: number): string {
   return value > 0 ? `+${value}` : String(value);
 }
 
+function createIngredientVisual(ingredient: Ingredient): HTMLElement {
+  if (ingredient.image) {
+    const image = document.createElement('img');
+    image.className = 'ingredient-card__image';
+    image.src = ingredient.image;
+    image.alt = ingredient.name;
+    image.draggable = false;
+
+    return image;
+  }
+
+  const placeholder = document.createElement('span');
+  placeholder.className = 'ingredient-card__image ingredient-card__image_placeholder';
+  placeholder.setAttribute('aria-hidden', 'true');
+  placeholder.textContent = '◇';
+
+  return placeholder;
+}
+
 export function createShelf({
   ingredients,
   stock,
@@ -41,9 +60,9 @@ export function createShelf({
       button.classList.add('ingredient-card_empty');
     }
 
-    const icon = document.createElement('span');
-    icon.className = 'ingredient-card__icon';
-    icon.textContent = isEmpty ? '' : ingredient.icon;
+    if (!isEmpty) {
+      button.append(createIngredientVisual(ingredient));
+    }
 
     const name = document.createElement('span');
     name.className = 'ingredient-card__name';
@@ -61,7 +80,7 @@ export function createShelf({
     badge.className = 'ingredient-card__stock';
     badge.textContent = String(amount);
 
-    button.append(icon, name, stats, badge);
+    button.append(name, stats, badge);
     button.addEventListener('click', () => onIngredientClick(ingredient));
 
     list.append(button);
