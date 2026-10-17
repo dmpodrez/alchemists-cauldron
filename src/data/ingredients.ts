@@ -1,9 +1,9 @@
-import dragonTearsImage from '../assets/ingredients/dragon-tears.png';
-import fairyDustImage from '../assets/ingredients/fairy-dust.png';
-import frostLotusImage from '../assets/ingredients/frost-lotus.png';
-import mandrakeRootImage from '../assets/ingredients/mandrake-root.png';
-import causticAcidImage from '../assets/ingredients/caustic-acid.png';
-import essenceVoidImage from '../assets/ingredients/essence-of-the-void.png';
+import dragonTearsImage from '../assets/ingredients/dragon-tears.svg';
+import fairyDustImage from '../assets/ingredients/fairy-dust.svg';
+import frostLotusImage from '../assets/ingredients/frost-lotus.svg';
+import mandrakeRootImage from '../assets/ingredients/mandrake-root.svg';
+import causticAcidImage from '../assets/ingredients/caustic-acid.svg';
+import essenceVoidImage from '../assets/ingredients/essence-of-the-void.svg';
 
 export interface Ingredient {
   id: string;
