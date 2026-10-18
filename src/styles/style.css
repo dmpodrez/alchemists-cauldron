@@ -5026,11 +5026,6 @@ input,
 }
 
 @media (max-width: 520px) {
-  .leaderboard-table th:last-child,
-  .leaderboard-table td:last-child {
-    display: none;
-  }
-
   .leaderboard-dialog__actions {
     flex-direction: column;
     align-items: stretch;

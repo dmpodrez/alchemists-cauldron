@@ -275,7 +275,7 @@ function addIngredient(ingredient: Ingredient): void {
   };
 
   saveGame(state);
-  render();
+  renderWithAnimatedParameterBars();
 }
 
 function applyTimeBonus(): void {
@@ -341,7 +341,7 @@ function brew(): void {
   }
 
   saveGame(state);
-  render();
+  renderWithAnimatedParameterBars();
 }
 
 function renderGame(): HTMLElement {
@@ -453,6 +453,39 @@ function render(): void {
   }
 
   appElement.replaceChildren(renderGame());
+}
+
+function renderWithAnimatedParameterBars(): void {
+  const previousPositions = Array.from(
+    appElement.querySelectorAll<HTMLElement>('.parameter-bar__marker'),
+    (marker) => marker.style.left,
+  );
+
+  render();
+
+  const markers = appElement.querySelectorAll<HTMLElement>('.parameter-bar__marker');
+
+  markers.forEach((marker, index) => {
+    const previousPosition = previousPositions[index];
+
+    if (previousPosition === undefined) {
+      return;
+    }
+
+    const nextPosition = marker.style.left;
+
+    if (previousPosition === nextPosition) {
+      return;
+    }
+
+    marker.style.transition = 'none';
+    marker.style.left = previousPosition;
+
+    marker.getBoundingClientRect();
+
+    marker.style.removeProperty('transition');
+    marker.style.left = nextPosition;
+  });
 }
 
 document.addEventListener('visibilitychange', () => {
