@@ -132,3 +132,7 @@ The Level 1 Top-10 leaderboard is also stored in `localStorage`. Invalid or corr
 ## Task
 
 [RS School — Alchemist's Cauldron](https://github.com/rolling-scopes-school/qualifying-stage/tree/main/tasks/game-alchemists-cauldron)
+
+## Asset credits
+
+See [ASSET_CREDITS.md](./ASSET_CREDITS.md) for ingredient icon authors and licensing.
