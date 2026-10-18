@@ -20,3 +20,21 @@ export function pickRandomRecipe(difficulty: Difficulty): Recipe {
 
   return recipe;
 }
+export function pickNextRecipe(difficulty: Difficulty, currentRecipeId: string): Recipe {
+  const availableRecipes = getRecipesByDifficulty(difficulty).filter(
+    (recipe) => recipe.id !== currentRecipeId,
+  );
+
+  if (availableRecipes.length === 0) {
+    return pickRandomRecipe(difficulty);
+  }
+
+  const index = Math.floor(Math.random() * availableRecipes.length);
+  const recipe = availableRecipes[index];
+
+  if (!recipe) {
+    throw new Error('Failed to select the next recipe.');
+  }
+
+  return recipe;
+}

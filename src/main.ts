@@ -1,15 +1,16 @@
+import { pickNextRecipe, pickRandomRecipe } from './logic/recipe';
 import './styles/style.css';
 import { createPauseDialog } from './ui/pause-dialog';
 import { LEVEL_ONE_INGREDIENTS, type Ingredient } from './data/ingredients';
 import { isSuccessfulBrew } from './logic/brew';
 import { calculateCauldron } from './logic/calculate-cauldron';
 import { addIngredientToCauldron, LEVEL_ONE_CAULDRON_CAPACITY } from './logic/cauldron';
-import { pickRandomRecipe } from './logic/recipe';
 import { createStock, isShelfEmpty } from './logic/stock';
 import {
   addTimeBonus,
   calculateTimeLeft,
   createEndTime,
+  formatTime,
   LEVEL_ONE_START_TIME,
 } from './logic/timer';
 import { createMenuState, type GameOverReason, type GameState } from './state/game-state';
@@ -44,11 +45,29 @@ let state: GameState = createMenuState();
 let timerFrame: number | null = null;
 let lastRenderedSecond: number | null = null;
 let scoreSubmittedForCurrentRun = false;
+
 function stopTimerLoop(): void {
   if (timerFrame !== null) {
     cancelAnimationFrame(timerFrame);
     timerFrame = null;
   }
+}
+
+function updateTimerUi(timeLeft: number): void {
+  const timer = appElement.querySelector<HTMLElement>('.hud__timer');
+  const value = timer?.querySelector<HTMLElement>('.hud__value');
+  const progress = timer?.querySelector<HTMLElement>('.hud__timer-progress');
+
+  if (!timer || !value || !progress) {
+    return;
+  }
+
+  value.textContent = formatTime(timeLeft);
+
+  const percentage = Math.max(0, Math.min(100, (timeLeft / LEVEL_ONE_START_TIME) * 100));
+
+  progress.style.width = `${percentage}%`;
+  timer.classList.toggle('hud__timer_danger', timeLeft < 15);
 }
 
 function gameOver(reason: GameOverReason): void {
@@ -88,6 +107,7 @@ function timerTick(): void {
       timeLeft: 0,
     };
 
+    updateTimerUi(0);
     gameOver('time');
     return;
   }
@@ -100,7 +120,9 @@ function timerTick(): void {
       timeLeft,
     };
 
-    render();
+    // Only update the HUD timer. Re-rendering the whole game every second
+    // would restart the cauldron smoke/bubble animations.
+    updateTimerUi(timeLeft);
   }
 
   timerFrame = requestAnimationFrame(timerTick);
@@ -111,6 +133,7 @@ function startTimerLoop(): void {
   lastRenderedSecond = null;
   timerFrame = requestAnimationFrame(timerTick);
 }
+
 function pauseGame(): void {
   if (state.status !== 'playing' || state.endTime === null) {
     return;
@@ -160,6 +183,7 @@ function exitToMenu(): void {
   state = createMenuState();
   render();
 }
+
 function startGame(): void {
   scoreSubmittedForCurrentRun = false;
   state = {
@@ -177,6 +201,7 @@ function startGame(): void {
   render();
   startTimerLoop();
 }
+
 function openLeaderboard(): void {
   const existingDialog = appElement.querySelector('.leaderboard-overlay');
 
@@ -212,6 +237,7 @@ function submitLeaderboardScore(name: string): string | null {
 
   return null;
 }
+
 function addIngredient(ingredient: Ingredient): void {
   if (state.status !== 'playing') {
     return;
@@ -252,15 +278,16 @@ function brew(): void {
     return;
   }
 
+  const currentRecipe = state.activeRecipe;
   const values = calculateCauldron(state.cauldronIngredients);
-  const success = isSuccessfulBrew(values, state.activeRecipe);
+  const success = isSuccessfulBrew(values, currentRecipe);
 
   if (success) {
     state = {
       ...state,
       score: state.score + LEVEL_ONE_SCORE_PER_BREW,
       cauldronIngredients: [],
-      activeRecipe: pickRandomRecipe('medium'),
+      activeRecipe: pickNextRecipe('medium', currentRecipe.id),
     };
 
     applyTimeBonus();
@@ -271,16 +298,22 @@ function brew(): void {
   } else {
     const nextLives = Math.max(0, state.lives - 1);
 
+    if (nextLives === 0) {
+      state = {
+        ...state,
+        lives: 0,
+        cauldronIngredients: [],
+      };
+
+      gameOver('lives');
+      return;
+    }
+
     state = {
       ...state,
       lives: nextLives,
       cauldronIngredients: [],
     };
-
-    if (nextLives === 0) {
-      gameOver('lives');
-      return;
-    }
 
     if (checkOutOfIngredients()) {
       return;
@@ -301,11 +334,12 @@ function renderGame(): HTMLElement {
   const title = document.createElement('h1');
   title.className = 'game__title';
   title.textContent = "Alchemist's Cauldron";
+
   if (state.status === 'paused') {
     game.classList.add('game_paused');
   }
-  const cauldronIsFull = state.cauldronIngredients.length >= LEVEL_ONE_CAULDRON_CAPACITY;
 
+  const cauldronIsFull = state.cauldronIngredients.length >= LEVEL_ONE_CAULDRON_CAPACITY;
   const cauldronValues = calculateCauldron(state.cauldronIngredients);
 
   const hud = createHud({
@@ -325,9 +359,16 @@ function renderGame(): HTMLElement {
     onIngredientClick: addIngredient,
   });
 
+  const centerColumn = document.createElement('div');
+  centerColumn.className = 'game__center-column';
+  centerColumn.append(
+    createCauldron({
+      ingredients: state.cauldronIngredients,
+    }),
+  );
+
   const rightColumn = document.createElement('div');
   rightColumn.className = 'game__right-column';
-
   rightColumn.append(
     createRecipePanel({
       recipe: state.activeRecipe,
@@ -335,13 +376,10 @@ function renderGame(): HTMLElement {
       capacity: LEVEL_ONE_CAULDRON_CAPACITY,
       onBrew: brew,
     }),
-    createCauldron({
-      ingredients: state.cauldronIngredients,
-    }),
     createParameterBars(cauldronValues, state.activeRecipe),
   );
 
-  content.append(shelf, rightColumn);
+  content.append(shelf, centerColumn, rightColumn);
   game.append(title, hud, content);
 
   return game;
@@ -393,9 +431,11 @@ function render(): void {
 
   appElement.replaceChildren(renderGame());
 }
+
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && state.status === 'playing') {
     pauseGame();
   }
 });
+
 render();
