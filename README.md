@@ -22,6 +22,7 @@ This repository currently contains the completed **Level 1 — Basic** gameplay.
 - Pause / Resume / Exit to Menu flow
 - Automatic pause when the browser tab becomes hidden
 - Game Over reasons for time, lives and depleted ingredients
+- Saving unfinished games to `localStorage` with **Continue Game** (restores paused)
 - Top-10 leaderboard stored in `localStorage`
 - Player-name validation
 - Custom leaderboard clear confirmation
@@ -124,7 +125,9 @@ Level 1 is mouse / pointer based:
 
 ## Persistence
 
-The Level 1 Top-10 leaderboard is stored in browser `localStorage`. Invalid or corrupted leaderboard data is handled without crashing the game.
+Unfinished Level 1 games are saved to browser `localStorage`. When a valid save exists, **Continue Game** restores it in a paused state. A completed run clears the unfinished save.
+
+The Level 1 Top-10 leaderboard is also stored in `localStorage`. Invalid or corrupted stored data is handled without crashing the game.
 
 ## Task
 

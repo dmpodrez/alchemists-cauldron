@@ -14,6 +14,7 @@ import {
   LEVEL_ONE_START_TIME,
 } from './logic/timer';
 import { createMenuState, type GameOverReason, type GameState } from './state/game-state';
+import { clearSavedGame, loadSavedGame, saveGame } from './storage/game-save';
 import { createCauldron } from './ui/cauldron';
 import { createGameOverScreen } from './ui/game-over';
 import { createHud } from './ui/hud';
@@ -72,6 +73,7 @@ function updateTimerUi(timeLeft: number): void {
 
 function gameOver(reason: GameOverReason): void {
   stopTimerLoop();
+  clearSavedGame();
 
   state = {
     ...state,
@@ -123,6 +125,7 @@ function timerTick(): void {
     // Only update the HUD timer. Re-rendering the whole game every second
     // would restart the cauldron smoke/bubble animations.
     updateTimerUi(timeLeft);
+    saveGame(state);
   }
 
   timerFrame = requestAnimationFrame(timerTick);
@@ -160,6 +163,7 @@ function pauseGame(): void {
     endTime: null,
   };
 
+  saveGame(state);
   render();
 }
 
@@ -174,6 +178,7 @@ function resumeGame(): void {
     endTime: createEndTime(state.timeLeft),
   };
 
+  saveGame(state);
   render();
   startTimerLoop();
 }
@@ -198,8 +203,22 @@ function startGame(): void {
     gameOverReason: null,
   };
 
+  saveGame(state);
   render();
   startTimerLoop();
+}
+
+function continueGame(): void {
+  const savedState = loadSavedGame();
+  if (!savedState) {
+    render();
+    return;
+  }
+
+  stopTimerLoop();
+  scoreSubmittedForCurrentRun = false;
+  state = savedState;
+  render();
 }
 
 function openLeaderboard(): void {
@@ -255,6 +274,7 @@ function addIngredient(ingredient: Ingredient): void {
     shelfStock: result.stock,
   };
 
+  saveGame(state);
   render();
 }
 
@@ -320,6 +340,7 @@ function brew(): void {
     }
   }
 
+  saveGame(state);
   render();
 }
 
@@ -390,6 +411,8 @@ function render(): void {
     appElement.replaceChildren(
       createStartScreen({
         onStart: startGame,
+        onContinue: continueGame,
+        hasSavedGame: loadSavedGame() !== null,
         onLeaderboard: openLeaderboard,
       }),
     );
