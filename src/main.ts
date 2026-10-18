@@ -1,21 +1,17 @@
 import { pickNextRecipe, pickRandomRecipe } from './logic/recipe';
 import './styles/style.css';
 import { createPauseDialog } from './ui/pause-dialog';
-import { LEVEL_ONE_INGREDIENTS, type Ingredient } from './data/ingredients';
 import { isSuccessfulBrew } from './logic/brew';
 import { calculateCauldron } from './logic/calculate-cauldron';
-import { addIngredientToCauldron, LEVEL_ONE_CAULDRON_CAPACITY } from './logic/cauldron';
+import { addIngredientToCauldron } from './logic/cauldron';
 import { createStock, isShelfEmpty } from './logic/stock';
-import {
-  addTimeBonus,
-  calculateTimeLeft,
-  createEndTime,
-  formatTime,
-  LEVEL_ONE_START_TIME,
-} from './logic/timer';
+
+import { addTimeBonus, calculateTimeLeft, createEndTime, formatTime } from './logic/timer';
+
 import { createMenuState, type GameOverReason, type GameState } from './state/game-state';
 import { clearSavedGame, loadSavedGame, saveGame } from './storage/game-save';
 import { createCauldron } from './ui/cauldron';
+import { INGREDIENTS, type Ingredient } from './data/ingredients';
 import { createGameOverScreen } from './ui/game-over';
 import { createHud } from './ui/hud';
 import { createParameterBars } from './ui/parameter-bars';
@@ -30,9 +26,8 @@ import {
   qualifiesForLeaderboard,
 } from './storage/leaderboard';
 import { createLeaderboardDialog } from './ui/leaderboard-dialog';
-
-const LEVEL_ONE_SCORE_PER_BREW = 200;
-const LEVEL_ONE_START_LIVES = 3;
+import type { Difficulty } from './data/recipes';
+import { DIFFICULTY_SETTINGS } from './data/difficulty';
 
 const app = document.querySelector<HTMLDivElement>('#app');
 
@@ -65,7 +60,8 @@ function updateTimerUi(timeLeft: number): void {
 
   value.textContent = formatTime(timeLeft);
 
-  const percentage = Math.max(0, Math.min(100, (timeLeft / LEVEL_ONE_START_TIME) * 100));
+  const startTime = DIFFICULTY_SETTINGS[state.difficulty].startTime;
+  const percentage = Math.max(0, Math.min(100, (timeLeft / startTime) * 100));
 
   progress.style.width = `${percentage}%`;
   timer.classList.toggle('hud__timer_danger', timeLeft < 15);
@@ -185,21 +181,29 @@ function resumeGame(): void {
 
 function exitToMenu(): void {
   stopTimerLoop();
+  clearSavedGame();
+
   state = createMenuState();
   render();
 }
 
 function startGame(): void {
+  const difficulty = state.difficulty;
+  const settings = DIFFICULTY_SETTINGS[difficulty];
+  const shelfIngredients = INGREDIENTS.slice(0, settings.shelfSize);
+
   scoreSubmittedForCurrentRun = false;
+
   state = {
     status: 'playing',
+    difficulty,
     score: 0,
-    timeLeft: LEVEL_ONE_START_TIME,
-    endTime: createEndTime(LEVEL_ONE_START_TIME),
-    lives: LEVEL_ONE_START_LIVES,
-    activeRecipe: pickRandomRecipe('medium'),
+    timeLeft: settings.startTime,
+    endTime: createEndTime(settings.startTime),
+    lives: settings.lives,
+    activeRecipe: pickRandomRecipe(difficulty),
     cauldronIngredients: [],
-    shelfStock: createStock(LEVEL_ONE_INGREDIENTS),
+    shelfStock: createStock(shelfIngredients),
     gameOverReason: null,
   };
 
@@ -221,22 +225,26 @@ function continueGame(): void {
   render();
 }
 
-function openLeaderboard(): void {
-  const existingDialog = appElement.querySelector('.leaderboard-overlay');
-
-  existingDialog?.remove();
+function showLeaderboard(difficulty: Difficulty): void {
+  appElement.querySelector('.leaderboard-overlay')?.remove();
 
   const closeLeaderboard = (): void => {
     appElement.querySelector('.leaderboard-overlay')?.remove();
   };
 
   const dialog = createLeaderboardDialog({
-    entries: loadLeaderboard(),
+    entries: loadLeaderboard(difficulty),
+    difficulty,
     onClose: closeLeaderboard,
-    onClear: clearLeaderboard,
+    onClear: () => clearLeaderboard(difficulty),
+    onDifficultyChange: showLeaderboard,
   });
 
   appElement.append(dialog);
+}
+
+function openLeaderboard(): void {
+  showLeaderboard(state.difficulty);
 }
 
 function submitLeaderboardScore(name: string): string | null {
@@ -246,7 +254,7 @@ function submitLeaderboardScore(name: string): string | null {
     return 'Use 2–15 characters: letters, digits, space, _ or -.';
   }
 
-  const saved = addLeaderboardEntry(normalizedName, state.score);
+  const saved = addLeaderboardEntry(normalizedName, state.score, Date.now(), state.difficulty);
 
   if (!saved) {
     return 'The score could not be saved. Storage may be unavailable.';
@@ -262,7 +270,12 @@ function addIngredient(ingredient: Ingredient): void {
     return;
   }
 
-  const result = addIngredientToCauldron(ingredient, state.cauldronIngredients, state.shelfStock);
+  const result = addIngredientToCauldron(
+    ingredient,
+    state.cauldronIngredients,
+    state.shelfStock,
+    DIFFICULTY_SETTINGS[state.difficulty].cauldronCapacity,
+  );
 
   if (!result.added) {
     return;
@@ -283,8 +296,10 @@ function applyTimeBonus(): void {
     return;
   }
 
+  const settings = DIFFICULTY_SETTINGS[state.difficulty];
   const currentTime = calculateTimeLeft(state.endTime);
-  const nextTime = addTimeBonus(currentTime);
+
+  const nextTime = addTimeBonus(currentTime, settings.timeBonus, settings.startTime);
 
   state = {
     ...state,
@@ -297,17 +312,17 @@ function brew(): void {
   if (state.status !== 'playing' || !state.activeRecipe || state.cauldronIngredients.length === 0) {
     return;
   }
-
+  const settings = DIFFICULTY_SETTINGS[state.difficulty];
   const currentRecipe = state.activeRecipe;
   const values = calculateCauldron(state.cauldronIngredients);
-  const success = isSuccessfulBrew(values, currentRecipe);
+  const success = isSuccessfulBrew(values, currentRecipe, settings.tolerance);
 
   if (success) {
     state = {
       ...state,
-      score: state.score + LEVEL_ONE_SCORE_PER_BREW,
+      score: state.score + settings.scorePerBrew,
       cauldronIngredients: [],
-      activeRecipe: pickNextRecipe('medium', currentRecipe.id),
+      activeRecipe: pickNextRecipe(state.difficulty, currentRecipe.id),
     };
 
     applyTimeBonus();
@@ -360,13 +375,19 @@ function renderGame(): HTMLElement {
     game.classList.add('game_paused');
   }
 
-  const cauldronIsFull = state.cauldronIngredients.length >= LEVEL_ONE_CAULDRON_CAPACITY;
+  const cauldronCapacity = DIFFICULTY_SETTINGS[state.difficulty].cauldronCapacity;
+  const cauldronIsFull = state.cauldronIngredients.length >= cauldronCapacity;
+
   const cauldronValues = calculateCauldron(state.cauldronIngredients);
+
+  const settings = DIFFICULTY_SETTINGS[state.difficulty];
 
   const hud = createHud({
     score: state.score,
     timeLeft: state.timeLeft,
     lives: state.lives,
+    maxLives: settings.lives,
+    startTime: settings.startTime,
     onPause: pauseGame,
   });
 
@@ -374,7 +395,7 @@ function renderGame(): HTMLElement {
   content.className = 'game__content';
 
   const shelf = createShelf({
-    ingredients: LEVEL_ONE_INGREDIENTS,
+    ingredients: INGREDIENTS.slice(0, DIFFICULTY_SETTINGS[state.difficulty].shelfSize),
     stock: state.shelfStock,
     isBlocked: cauldronIsFull || state.status === 'paused',
     onIngredientClick: addIngredient,
@@ -394,7 +415,7 @@ function renderGame(): HTMLElement {
     createRecipePanel({
       recipe: state.activeRecipe,
       ingredientCount: state.cauldronIngredients.length,
-      capacity: LEVEL_ONE_CAULDRON_CAPACITY,
+      capacity: cauldronCapacity,
       onBrew: brew,
     }),
     createParameterBars(cauldronValues, state.activeRecipe),
@@ -406,6 +427,19 @@ function renderGame(): HTMLElement {
   return game;
 }
 
+function selectDifficulty(difficulty: Difficulty): void {
+  if (state.status !== 'menu') {
+    return;
+  }
+
+  state = {
+    ...state,
+    difficulty,
+  };
+
+  render();
+}
+
 function render(): void {
   if (state.status === 'menu') {
     appElement.replaceChildren(
@@ -414,6 +448,8 @@ function render(): void {
         onContinue: continueGame,
         hasSavedGame: loadSavedGame() !== null,
         onLeaderboard: openLeaderboard,
+        selectedDifficulty: state.difficulty,
+        onDifficultyChange: selectDifficulty,
       }),
     );
     return;
@@ -424,7 +460,8 @@ function render(): void {
       throw new Error('Game Over requires a reason.');
     }
 
-    const askForName = !scoreSubmittedForCurrentRun && qualifiesForLeaderboard(state.score);
+    const askForName =
+      !scoreSubmittedForCurrentRun && qualifiesForLeaderboard(state.score, state.difficulty);
 
     appElement.replaceChildren(
       createGameOverScreen({

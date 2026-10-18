@@ -1,11 +1,21 @@
+import type { Difficulty } from '../data/recipes';
+import { createSettingsDialog } from './settings-dialog';
+import { DIFFICULTY_SETTINGS } from '../data/difficulty';
+import { createStartPreview } from './start-preview';
+
 interface StartScreenOptions {
   onStart: () => void;
   onContinue: () => void;
   hasSavedGame: boolean;
   onLeaderboard: () => void;
+  selectedDifficulty: Difficulty;
+  onDifficultyChange: (difficulty: Difficulty) => void;
 }
 
-function createHelpDialog(onClose: () => void): HTMLElement {
+function createHelpDialog(difficulty: Difficulty, onClose: () => void): HTMLElement {
+  const settings = DIFFICULTY_SETTINGS[difficulty];
+  const difficultyName = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+
   const overlay = document.createElement('div');
   overlay.className = 'help-overlay';
 
@@ -35,14 +45,14 @@ function createHelpDialog(onClose: () => void): HTMLElement {
   rules.className = 'help-dialog__rules';
 
   const ruleTexts = [
-    'Choose ingredients from the shelf. Each ingredient changes Temperature, Density and Magic Power.',
-    'You can place up to 4 ingredients into the cauldron.',
-    'Match all three cauldron values with the current recipe target ranges.',
-    'Press Brew when you are ready. A successful potion gives 200 points and a time bonus.',
-    'A failed brew costs one life. Used ingredients are always spent.',
-    'The run ends when time reaches zero, all lives are lost, or no ingredients remain.',
+    `Choose ingredients from the shelf. This difficulty has ${settings.shelfSize} available ingredient types.`,
+    `Place up to ${settings.cauldronCapacity} ingredients into the cauldron.`,
+    'Balance Temperature, Density and Magic Power to match the current recipe.',
+    `Recipe ranges have an additional tolerance of ±${settings.tolerance}.`,
+    `A successful Brew gives ${settings.scorePerBrew} points and adds ${settings.timeBonus} seconds, without exceeding the starting time.`,
+    'A failed Brew costs one life. Used ingredients are always consumed.',
+    'The game ends when time runs out, all lives are lost, or no ingredients remain.',
   ];
-
   for (const text of ruleTexts) {
     const item = document.createElement('li');
     item.textContent = text;
@@ -51,7 +61,12 @@ function createHelpDialog(onClose: () => void): HTMLElement {
 
   const note = document.createElement('p');
   note.className = 'help-dialog__note';
-  note.textContent = 'Level 1 uses Medium rules: 150 seconds, 3 lives and ±8 brew tolerance.';
+
+  note.textContent =
+    `${difficultyName} difficulty: ` +
+    `${settings.startTime} seconds, ` +
+    `${settings.lives} lives, ` +
+    `${settings.cauldronCapacity} cauldron slots.`;
 
   const doneButton = document.createElement('button');
   doneButton.className = 'help-dialog__done';
@@ -74,6 +89,8 @@ export function createStartScreen({
   onContinue,
   hasSavedGame,
   onLeaderboard,
+  selectedDifficulty,
+  onDifficultyChange,
 }: StartScreenOptions): HTMLElement {
   const screen = document.createElement('main');
   screen.className = 'start-screen';
@@ -147,10 +164,33 @@ export function createStartScreen({
     };
 
     screen.querySelector('.help-overlay')?.remove();
-    screen.append(createHelpDialog(closeHelp));
+    screen.append(createHelpDialog(selectedDifficulty, closeHelp));
   });
 
-  secondaryActions.append(helpButton, leaderboardButton);
+  const settingsButton = document.createElement('button');
+  settingsButton.className = 'secondary-button start-screen__secondary';
+  settingsButton.type = 'button';
+  settingsButton.textContent = 'Settings';
+
+  settingsButton.addEventListener('click', () => {
+    const closeSettings = (): void => {
+      screen.querySelector('.settings-overlay')?.remove();
+      settingsButton.focus();
+    };
+
+    screen.querySelector('.settings-overlay')?.remove();
+
+    screen.append(
+      createSettingsDialog({
+        selectedDifficulty,
+        onSelect: onDifficultyChange,
+        onClose: closeSettings,
+      }),
+    );
+  });
+
+  secondaryActions.append(settingsButton, helpButton, leaderboardButton);
+
   actions.append(startButton);
 
   if (hasSavedGame) {
@@ -163,7 +203,11 @@ export function createStartScreen({
   }
 
   actions.append(secondaryActions);
-  content.append(sigil, eyebrow, title, ornament, text, actions);
+
+  const preview = createStartPreview(selectedDifficulty);
+
+  content.append(sigil, eyebrow, title, ornament, text, preview, actions);
+
   screen.append(veil, content);
 
   return screen;

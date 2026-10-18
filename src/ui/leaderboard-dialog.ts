@@ -1,9 +1,13 @@
 import { formatLeaderboardDate, type LeaderboardEntry } from '../storage/leaderboard';
 
+import type { Difficulty } from '../data/recipes';
+
 interface LeaderboardDialogOptions {
   entries: readonly LeaderboardEntry[];
   onClose: () => void;
   onClear: () => boolean;
+  difficulty: Difficulty;
+  onDifficultyChange: (difficulty: Difficulty) => void;
 }
 
 function createActionButton(text: string, className: string, icon: string): HTMLButtonElement {
@@ -26,8 +30,10 @@ function createActionButton(text: string, className: string, icon: string): HTML
 
 export function createLeaderboardDialog({
   entries,
+  difficulty,
   onClose,
   onClear,
+  onDifficultyChange,
 }: LeaderboardDialogOptions): HTMLElement {
   const overlay = document.createElement('div');
   overlay.className = 'leaderboard-overlay';
@@ -68,6 +74,35 @@ export function createLeaderboardDialog({
 
   header.append(headingGroup, closeButton);
 
+  const difficultySwitch = document.createElement('div');
+  difficultySwitch.className = 'leaderboard-dialog__difficulties';
+  difficultySwitch.setAttribute('role', 'group');
+  difficultySwitch.setAttribute('aria-label', 'Leaderboard difficulty');
+
+  const difficulties: readonly Difficulty[] = ['easy', 'medium', 'hard'];
+
+  for (const level of difficulties) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'leaderboard-dialog__difficulty-button';
+
+    button.textContent = level.charAt(0).toUpperCase() + level.slice(1);
+
+    const selected = level === difficulty;
+
+    button.setAttribute('aria-pressed', String(selected));
+
+    if (selected) {
+      button.classList.add('leaderboard-dialog__difficulty-button_active');
+    }
+
+    button.addEventListener('click', () => {
+      onDifficultyChange(level);
+    });
+
+    difficultySwitch.append(button);
+  }
+
   const tableWrapper = document.createElement('div');
   tableWrapper.className = 'leaderboard-table-wrapper';
 
@@ -77,7 +112,7 @@ export function createLeaderboardDialog({
   const head = document.createElement('thead');
   const headerRow = document.createElement('tr');
 
-  for (const label of ['#', 'Player', 'Score', 'Date']) {
+  for (const label of ['#', 'Player', 'Score', 'Difficulty', 'Date']) {
     const cell = document.createElement('th');
     cell.scope = 'col';
     cell.textContent = label;
@@ -96,7 +131,7 @@ export function createLeaderboardDialog({
       row.className = 'leaderboard-table__empty-row';
 
       const cell = document.createElement('td');
-      cell.colSpan = 4;
+      cell.colSpan = 5;
       cell.className = 'leaderboard-table__empty';
       cell.textContent = 'No scores yet. Brew your first potion!';
 
@@ -130,11 +165,15 @@ export function createLeaderboardDialog({
       score.className = 'leaderboard-table__score';
       score.textContent = String(entry.score);
 
+      const difficultyCell = document.createElement('td');
+      difficultyCell.className = 'leaderboard-table__difficulty';
+      difficultyCell.textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+
       const date = document.createElement('td');
       date.className = 'leaderboard-table__date';
       date.textContent = formatLeaderboardDate(entry.createdAt);
 
-      row.append(rank, name, score, date);
+      row.append(rank, name, score, difficultyCell, date);
       body.append(row);
     });
   }
@@ -181,7 +220,7 @@ export function createLeaderboardDialog({
     confirmationTitle.textContent = 'Clear leaderboard?';
 
     const confirmationText = document.createElement('p');
-    confirmationText.textContent = 'All saved Level 1 scores will be permanently removed.';
+    confirmationText.textContent = `All saved ${difficulty} scores will be permanently removed.`;
 
     const confirmationActions = document.createElement('div');
     confirmationActions.className = 'confirmation-dialog__actions';
@@ -224,7 +263,7 @@ export function createLeaderboardDialog({
   });
 
   actions.append(clearButton, doneButton);
-  dialog.append(header, tableWrapper, status, actions);
+  dialog.append(header, difficultySwitch, tableWrapper, status, actions);
   overlay.append(dialog);
 
   requestAnimationFrame(() => {
