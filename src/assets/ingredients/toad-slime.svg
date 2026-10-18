@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Toad Slime">
+  <defs>
+    <linearGradient id="slime" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#dcffa0"/>
+      <stop offset="0.32" stop-color="#9be451"/>
+      <stop offset="0.7" stop-color="#4baf53"/>
+      <stop offset="1" stop-color="#23764d"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#f5ffd4" stop-opacity="0.94"/>
+      <stop offset="1" stop-color="#f5ffd4" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft-glow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+  <!-- A soft luminous outline, not a raster image. -->
+  <path d="M120 303C120 221 172 154 254 143c61-9 128 31 144 88 6 24 0 45 17 66 15 18 28 40 28 67 0 48-50 76-117 80-17 1-34-8-50-8-22 0-38 15-65 13-63-5-140-26-140-81 0-22 17-39 30-52 12-12 19-20 19-13Z" fill="#72db58" opacity=".38" filter="url(#soft-glow)"/>
+  <!-- Organic slime silhouette with two hanging drips. -->
+  <path d="M118 301c-5-76 50-144 126-155 64-10 131 27 148 87 9 33 1 48 18 69 15 20 28 37 28 62 0 44-47 69-107 74-24 2-40-6-59-6-21 0-40 12-65 11-59-1-131-23-131-73 0-28 22-43 35-61 6-8 8-19 7-8Z" fill="url(#slime)" stroke="#27683f" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M152 410c0 18-7 37-7 53 0 15 8 24 20 24s21-11 21-26c0-13-5-32-3-44m135 18c-1 12 1 28 1 40 0 16 8 26 21 26s21-11 21-26c0-16-7-30-9-47" fill="url(#slime)" stroke="#27683f" stroke-width="7" stroke-linejoin="round"/>
+  <!-- Toad-like speckles suspended in the slime. -->
+  <g fill="#357d45" opacity=".58">
+    <ellipse cx="210" cy="241" rx="23" ry="18"/>
+    <ellipse cx="315" cy="296" rx="33" ry="25"/>
+    <ellipse cx="179" cy="349" rx="17" ry="13"/>
+    <ellipse cx="356" cy="371" rx="12" ry="10"/>
+    <circle cx="273" cy="364" r="13"/>
+  </g>
+  <g fill="#c9f982" opacity=".92">
+    <circle cx="268" cy="210" r="12"/>
+    <circle cx="344" cy="255" r="7"/>
+    <circle cx="236" cy="333" r="8"/>
+    <circle cx="141" cy="322" r="7"/>
+  </g>
+  <path d="M157 289c-3-42 27-86 66-104 25-11 46-9 60-4" fill="none" stroke="url(#gloss)" stroke-width="19" stroke-linecap="round"/>
+  <ellipse cx="363" cy="328" rx="18" ry="7" transform="rotate(-29 363 328)" fill="#edffc9" opacity=".58"/>
+  <!-- A few independent bubbles. -->
+  <circle cx="335" cy="115" r="29" fill="#a9f17e" stroke="#4baf53" stroke-width="5" opacity=".9"/>
+  <circle cx="323" cy="104" r="9" fill="#f0ffd2" opacity=".85"/>
+  <circle cx="184" cy="110" r="17" fill="#a9f17e" stroke="#4baf53" stroke-width="4" opacity=".85"/>
+  <circle cx="385" cy="168" r="13" fill="#a9f17e" stroke="#4baf53" stroke-width="4" opacity=".85"/>
+</svg>
