@@ -136,3 +136,7 @@ The Level 1 Top-10 leaderboard is also stored in `localStorage`. Invalid or corr
 ## Asset credits
 
 See [ASSET_CREDITS.md](./ASSET_CREDITS.md) for ingredient icon authors and licensing.
+
+## Live Demo
+
+**Play online:** [Alchemist's Cauldron](https://alchemists-cauldron.vercel.app)
