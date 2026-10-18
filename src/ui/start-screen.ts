@@ -1,5 +1,7 @@
 interface StartScreenOptions {
   onStart: () => void;
+  onContinue: () => void;
+  hasSavedGame: boolean;
   onLeaderboard: () => void;
 }
 
@@ -67,7 +69,12 @@ function createHelpDialog(onClose: () => void): HTMLElement {
   return overlay;
 }
 
-export function createStartScreen({ onStart, onLeaderboard }: StartScreenOptions): HTMLElement {
+export function createStartScreen({
+  onStart,
+  onContinue,
+  hasSavedGame,
+  onLeaderboard,
+}: StartScreenOptions): HTMLElement {
   const screen = document.createElement('main');
   screen.className = 'start-screen';
 
@@ -144,7 +151,18 @@ export function createStartScreen({ onStart, onLeaderboard }: StartScreenOptions
   });
 
   secondaryActions.append(helpButton, leaderboardButton);
-  actions.append(startButton, secondaryActions);
+  actions.append(startButton);
+
+  if (hasSavedGame) {
+    const continueButton = document.createElement('button');
+    continueButton.className = 'secondary-button start-screen__secondary';
+    continueButton.type = 'button';
+    continueButton.textContent = 'Continue Game';
+    continueButton.addEventListener('click', onContinue);
+    actions.append(continueButton);
+  }
+
+  actions.append(secondaryActions);
   content.append(sigil, eyebrow, title, ornament, text, actions);
   screen.append(veil, content);
 
