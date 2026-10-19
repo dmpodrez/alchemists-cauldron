@@ -3,6 +3,8 @@ import type { Ingredient } from '../data/ingredients';
 
 interface CauldronOptions {
   ingredients: readonly Ingredient[];
+  isDropEnabled: boolean;
+  onIngredientDrop: (ingredientId: string) => void;
 }
 
 const STEAM_PUFF_COUNT = 12;
@@ -69,9 +71,48 @@ function createFire(): HTMLElement {
   return fire;
 }
 
-export function createCauldron({ ingredients }: CauldronOptions): HTMLElement {
+export function createCauldron({
+  ingredients,
+  isDropEnabled,
+  onIngredientDrop,
+}: CauldronOptions): HTMLElement {
   const section = document.createElement('section');
   section.className = 'cauldron cauldron-section';
+
+  section.addEventListener('dragover', (event: DragEvent) => {
+    if (!isDropEnabled || !event.dataTransfer?.types.includes('text/plain')) {
+      return;
+    }
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+
+    section.classList.add('cauldron_drop-active');
+  });
+
+  section.addEventListener('dragleave', (event: DragEvent) => {
+    const nextTarget = event.relatedTarget;
+
+    if (!(nextTarget instanceof Node) || !section.contains(nextTarget)) {
+      section.classList.remove('cauldron_drop-active');
+    }
+  });
+
+  section.addEventListener('drop', (event: DragEvent) => {
+    section.classList.remove('cauldron_drop-active');
+
+    if (!isDropEnabled || !event.dataTransfer) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const ingredientId = event.dataTransfer.getData('text/plain');
+
+    if (ingredientId) {
+      onIngredientDrop(ingredientId);
+    }
+  });
 
   const visual = document.createElement('div');
   visual.className = 'cauldron-visual';
