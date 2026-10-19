@@ -663,6 +663,88 @@ function renderWithAnimatedParameterBars(): void {
   });
 }
 
+function handleGameKeydown(event: KeyboardEvent): void {
+  if (
+    state.status !== 'playing' ||
+    event.repeat ||
+    event.ctrlKey ||
+    event.altKey ||
+    event.metaKey
+  ) {
+    return;
+  }
+
+  const target = event.target;
+
+  if (
+    target instanceof HTMLElement &&
+    (target.isContentEditable || target.closest('input, textarea, select, [role="textbox"]'))
+  ) {
+    return;
+  }
+
+  // Do not activate game shortcuts while a dialog is open.
+  if (appElement.querySelector('.leaderboard-overlay')) {
+    return;
+  }
+
+  const key = event.key.toLowerCase();
+
+  // Pause the active game.
+  if (key === 'escape') {
+    event.preventDefault();
+    pauseGame();
+    return;
+  }
+
+  // Select ingredients using keys 1–8.
+  if (/^[1-8]$/.test(key)) {
+    const index = Number(key) - 1;
+
+    const shelfSize = DIFFICULTY_SETTINGS[state.difficulty].shelfSize;
+
+    const capacity = DIFFICULTY_SETTINGS[state.difficulty].cauldronCapacity;
+
+    const ingredient = INGREDIENTS[index];
+
+    if (
+      index >= shelfSize ||
+      !ingredient ||
+      (state.shelfStock[ingredient.id] ?? 0) <= 0 ||
+      state.cauldronIngredients.length >= capacity
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    addIngredient(ingredient);
+    return;
+  }
+
+  // Brew the current mixture.
+  if (key === 'b') {
+    if (state.cauldronIngredients.length === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    brew();
+    return;
+  }
+
+  // Pour Out the current mixture.
+  if (key === 'x') {
+    if (state.cauldronIngredients.length === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    handlePourOut();
+  }
+}
+
+document.addEventListener('keydown', handleGameKeydown);
+
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && state.status === 'playing') {
     pauseGame();
