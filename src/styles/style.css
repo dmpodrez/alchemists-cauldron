@@ -6041,3 +6041,52 @@ input,
     animation-duration: 0.01ms;
   }
 }
+
+/* STORY 3 — SUCCESS FEEDBACK ON FINAL BREW */
+
+.game-over_brew-success::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+
+  background: radial-gradient(
+    circle at center,
+    rgb(255 215 100 / 55%) 0%,
+    rgb(220 160 50 / 25%) 35%,
+    transparent 70%
+  );
+
+  animation: game-over-explosion 900ms ease-out both;
+}
+
+.game-over_brew-success::after {
+  content: 'BREW SUCCESS!';
+  position: absolute;
+  z-index: 3;
+  top: 35%;
+  left: 50%;
+
+  width: max-content;
+  max-width: 90%;
+
+  color: #ffe7a0;
+  font-size: clamp(20px, 4vw, 34px);
+  font-weight: 800;
+  text-align: center;
+
+  text-shadow:
+    0 0 15px rgb(255 196 65 / 90%),
+    0 0 30px rgb(255 153 30 / 60%);
+
+  pointer-events: none;
+  animation: cauldron-success-label 900ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-over_brew-success::before,
+  .game-over_brew-success::after {
+    animation-duration: 0.01ms;
+  }
+}

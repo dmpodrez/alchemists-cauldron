@@ -68,7 +68,8 @@ function createParameterBar(
 
   const valueElement = document.createElement('strong');
   valueElement.className = 'parameter-bar__value';
-  valueElement.textContent = String(value);
+
+  valueElement.textContent = String(Number(value.toFixed(2)));
 
   header.append(label, valueElement);
 
