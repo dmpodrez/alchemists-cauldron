@@ -2,10 +2,12 @@ import { pickNextRecipe, pickRandomRecipe } from './logic/recipe';
 import './styles/style.css';
 import { createPauseDialog } from './ui/pause-dialog';
 import { isSuccessfulBrew } from './logic/brew';
-import { calculateCauldron } from './logic/calculate-cauldron';
+import { calculateCauldronWithReactions, getNewlyActivatedReactions } from './logic/reactions';
+import { REACTIONS } from './data/reactions';
 import { addIngredientToCauldron } from './logic/cauldron';
 import { createStock, isShelfEmpty } from './logic/stock';
-
+import { selectReactions } from './logic/select-reactions';
+import { pourOutCauldron } from './logic/pour-out';
 import { addTimeBonus, calculateTimeLeft, createEndTime, formatTime } from './logic/timer';
 
 import { createMenuState, type GameOverReason, type GameState } from './state/game-state';
@@ -42,6 +44,12 @@ let timerFrame: number | null = null;
 let lastRenderedSecond: number | null = null;
 let scoreSubmittedForCurrentRun = false;
 
+function calculateCurrentCauldronValues() {
+  const selectedReactions = REACTIONS.filter((reaction) => state.reactionIds.includes(reaction.id));
+
+  return calculateCauldronWithReactions(state.cauldronIngredients, selectedReactions).values;
+}
+
 function stopTimerLoop(): void {
   if (timerFrame !== null) {
     cancelAnimationFrame(timerFrame);
@@ -67,7 +75,7 @@ function updateTimerUi(timeLeft: number): void {
   timer.classList.toggle('hud__timer_danger', timeLeft < 15);
 }
 
-function gameOver(reason: GameOverReason): void {
+function gameOver(reason: GameOverReason, successfulBrew = false): void {
   stopTimerLoop();
   clearSavedGame();
 
@@ -80,11 +88,15 @@ function gameOver(reason: GameOverReason): void {
   };
 
   render();
+
+  if (successfulBrew) {
+    appElement.querySelector('.game-over')?.classList.add('game-over_brew-success');
+  }
 }
 
-function checkOutOfIngredients(): boolean {
+function checkOutOfIngredients(successfulBrew = false): boolean {
   if (state.cauldronIngredients.length === 0 && isShelfEmpty(state.shelfStock)) {
-    gameOver('ingredients');
+    gameOver('ingredients', successfulBrew);
     return true;
   }
 
@@ -197,6 +209,7 @@ function startGame(): void {
   state = {
     status: 'playing',
     difficulty,
+    reactionIds: selectReactions(difficulty).map((reaction) => reaction.id),
     score: 0,
     timeLeft: settings.startTime,
     endTime: createEndTime(settings.startTime),
@@ -266,7 +279,7 @@ function submitLeaderboardScore(name: string): string | null {
 }
 
 function addIngredient(ingredient: Ingredient): void {
-  if (state.status !== 'playing') {
+  if (state.status !== 'playing' || state.endTime === null) {
     return;
   }
 
@@ -281,14 +294,77 @@ function addIngredient(ingredient: Ingredient): void {
     return;
   }
 
+  // Reactions selected for the current game.
+  const selectedReactions = REACTIONS.filter((reaction) => state.reactionIds.includes(reaction.id));
+
+  // Only reactions that have just become active can fire.
+  const firedReactions = getNewlyActivatedReactions(
+    state.cauldronIngredients,
+    result.ingredients,
+    selectedReactions,
+  );
+
+  // Calculate one-time penalties.
+  const timePenalty = firedReactions.reduce(
+    (total, reaction) => total + (reaction.onActivate?.timePenalty ?? 0),
+    0,
+  );
+
+  const lifePenalty = firedReactions.reduce(
+    (total, reaction) => total + (reaction.onActivate?.lifePenalty ?? 0),
+    0,
+  );
+
+  const clearCauldron = firedReactions.some(
+    (reaction) => reaction.onActivate?.clearCauldron === true,
+  );
+
+  // Preserve the existing timer deadline, minus penalties.
+  const nextEndTime = state.endTime - timePenalty * 1000;
+  const nextTimeLeft = calculateTimeLeft(nextEndTime);
+  const nextLives = Math.max(0, state.lives - lifePenalty);
+
   state = {
     ...state,
-    cauldronIngredients: result.ingredients,
+    cauldronIngredients: clearCauldron ? [] : result.ingredients,
     shelfStock: result.stock,
+    lives: nextLives,
+    timeLeft: nextTimeLeft,
+    endTime: nextEndTime,
   };
+
+  if (nextLives === 0) {
+    gameOver('lives');
+    return;
+  }
+
+  if (nextTimeLeft === 0) {
+    gameOver('time');
+    return;
+  }
+
+  if (checkOutOfIngredients()) {
+    return;
+  }
 
   saveGame(state);
   renderWithAnimatedParameterBars();
+}
+
+function handleIngredientDrop(ingredientId: string): void {
+  if (state.status !== 'playing') {
+    return;
+  }
+
+  const shelfIngredients = INGREDIENTS.slice(0, DIFFICULTY_SETTINGS[state.difficulty].shelfSize);
+
+  const ingredient = shelfIngredients.find((item) => item.id === ingredientId);
+
+  if (!ingredient) {
+    return;
+  }
+
+  addIngredient(ingredient);
 }
 
 function applyTimeBonus(): void {
@@ -308,13 +384,35 @@ function applyTimeBonus(): void {
   };
 }
 
+function handlePourOut(): void {
+  const nextState = pourOutCauldron(state);
+
+  if (nextState === null) {
+    return;
+  }
+
+  state = nextState;
+
+  if (state.timeLeft <= 0) {
+    gameOver('time');
+    return;
+  }
+
+  if (checkOutOfIngredients()) {
+    return;
+  }
+
+  saveGame(state);
+  renderWithAnimatedParameterBars();
+}
+
 function brew(): void {
   if (state.status !== 'playing' || !state.activeRecipe || state.cauldronIngredients.length === 0) {
     return;
   }
   const settings = DIFFICULTY_SETTINGS[state.difficulty];
   const currentRecipe = state.activeRecipe;
-  const values = calculateCauldron(state.cauldronIngredients);
+  const values = calculateCurrentCauldronValues();
   const success = isSuccessfulBrew(values, currentRecipe, settings.tolerance);
 
   if (success) {
@@ -327,7 +425,7 @@ function brew(): void {
 
     applyTimeBonus();
 
-    if (checkOutOfIngredients()) {
+    if (checkOutOfIngredients(true)) {
       return;
     }
   } else {
@@ -357,6 +455,46 @@ function brew(): void {
 
   saveGame(state);
   renderWithAnimatedParameterBars();
+
+  if (success) {
+    const visual = appElement.querySelector<HTMLElement>('.cauldron-visual');
+
+    if (visual) {
+      visual.classList.add('cauldron-visual_brew-success');
+
+      visual.addEventListener('animationend', (event) => {
+        if (event.target === visual && event.animationName === 'cauldron-success-flash') {
+          visual.classList.remove('cauldron-visual_brew-success');
+        }
+      });
+    }
+  }
+
+  if (!success) {
+    const game = appElement.querySelector<HTMLElement>('.game');
+
+    const visual = appElement.querySelector<HTMLElement>('.cauldron-visual');
+
+    if (game) {
+      game.classList.add('game_brew-failure');
+
+      game.addEventListener('animationend', (event) => {
+        if (event.target === game && event.animationName === 'game-failure-shake') {
+          game.classList.remove('game_brew-failure');
+        }
+      });
+    }
+
+    if (visual) {
+      visual.classList.add('cauldron-visual_brew-failure');
+
+      visual.addEventListener('animationend', (event) => {
+        if (event.target === visual && event.animationName === 'cauldron-failure-flash') {
+          visual.classList.remove('cauldron-visual_brew-failure');
+        }
+      });
+    }
+  }
 }
 
 function renderGame(): HTMLElement {
@@ -378,7 +516,7 @@ function renderGame(): HTMLElement {
   const cauldronCapacity = DIFFICULTY_SETTINGS[state.difficulty].cauldronCapacity;
   const cauldronIsFull = state.cauldronIngredients.length >= cauldronCapacity;
 
-  const cauldronValues = calculateCauldron(state.cauldronIngredients);
+  const cauldronValues = calculateCurrentCauldronValues();
 
   const settings = DIFFICULTY_SETTINGS[state.difficulty];
 
@@ -406,6 +544,8 @@ function renderGame(): HTMLElement {
   centerColumn.append(
     createCauldron({
       ingredients: state.cauldronIngredients,
+      isDropEnabled: state.status === 'playing' && !cauldronIsFull,
+      onIngredientDrop: handleIngredientDrop,
     }),
   );
 
@@ -417,6 +557,8 @@ function renderGame(): HTMLElement {
       ingredientCount: state.cauldronIngredients.length,
       capacity: cauldronCapacity,
       onBrew: brew,
+      onPourOut: handlePourOut,
+      isPaused: state.status === 'paused',
     }),
     createParameterBars(cauldronValues, state.activeRecipe),
   );
@@ -524,6 +666,88 @@ function renderWithAnimatedParameterBars(): void {
     marker.style.left = nextPosition;
   });
 }
+
+function handleGameKeydown(event: KeyboardEvent): void {
+  if (
+    state.status !== 'playing' ||
+    event.repeat ||
+    event.ctrlKey ||
+    event.altKey ||
+    event.metaKey
+  ) {
+    return;
+  }
+
+  const target = event.target;
+
+  if (
+    target instanceof HTMLElement &&
+    (target.isContentEditable || target.closest('input, textarea, select, [role="textbox"]'))
+  ) {
+    return;
+  }
+
+  // Do not activate game shortcuts while a dialog is open.
+  if (appElement.querySelector('.leaderboard-overlay')) {
+    return;
+  }
+
+  const key = event.key.toLowerCase();
+
+  // Pause the active game.
+  if (key === 'escape') {
+    event.preventDefault();
+    pauseGame();
+    return;
+  }
+
+  // Select ingredients using keys 1–8.
+  if (/^[1-8]$/.test(key)) {
+    const index = Number(key) - 1;
+
+    const shelfSize = DIFFICULTY_SETTINGS[state.difficulty].shelfSize;
+
+    const capacity = DIFFICULTY_SETTINGS[state.difficulty].cauldronCapacity;
+
+    const ingredient = INGREDIENTS[index];
+
+    if (
+      index >= shelfSize ||
+      !ingredient ||
+      (state.shelfStock[ingredient.id] ?? 0) <= 0 ||
+      state.cauldronIngredients.length >= capacity
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    addIngredient(ingredient);
+    return;
+  }
+
+  // Brew the current mixture.
+  if (key === 'b') {
+    if (state.cauldronIngredients.length === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    brew();
+    return;
+  }
+
+  // Pour Out the current mixture.
+  if (key === 'x') {
+    if (state.cauldronIngredients.length === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    handlePourOut();
+  }
+}
+
+document.addEventListener('keydown', handleGameKeydown);
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && state.status === 'playing') {

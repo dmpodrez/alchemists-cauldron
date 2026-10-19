@@ -9,7 +9,91 @@ interface ShelfOptions {
 }
 
 function formatValue(value: number): string {
-  return value > 0 ? `+${value}` : String(value);
+  if (value > 0) {
+    return `+${value}`;
+  }
+
+  if (value < 0) {
+    return `−${Math.abs(value)}`;
+  }
+
+  return '0';
+}
+
+function createIngredientTooltip(ingredient: Ingredient): HTMLElement {
+  const tooltip = document.createElement('span');
+  tooltip.className = 'ingredient-tooltip';
+  tooltip.id = `tooltip-${ingredient.id}`;
+  tooltip.setAttribute('role', 'tooltip');
+
+  const title = document.createElement('span');
+  title.className = 'ingredient-tooltip__title';
+  title.textContent = ingredient.name;
+
+  tooltip.append(title);
+
+  const properties = [
+    ['Temperature', ingredient.temperature],
+    ['Density', ingredient.density],
+    ['Magic Power', ingredient.magicPower],
+  ] as const;
+
+  for (const [label, value] of properties) {
+    const row = document.createElement('span');
+    row.className = 'ingredient-tooltip__row';
+
+    const propertyName = document.createElement('span');
+    propertyName.textContent = label;
+
+    const propertyValue = document.createElement('strong');
+    propertyValue.textContent = formatValue(value);
+
+    row.append(propertyName, propertyValue);
+    tooltip.append(row);
+  }
+
+  return tooltip;
+}
+
+function positionIngredientTooltip(button: HTMLButtonElement, tooltip: HTMLElement): void {
+  const cardRect = button.getBoundingClientRect();
+
+  const tooltipWidth = tooltip.offsetWidth;
+  const tooltipHeight = tooltip.offsetHeight;
+
+  const gap = 12;
+  const margin = 10;
+
+  const viewportWidth = document.documentElement.clientWidth;
+  const viewportHeight = window.innerHeight;
+
+  const spaceRight = viewportWidth - cardRect.right;
+  const spaceLeft = cardRect.left;
+
+  const openLeft = spaceRight < tooltipWidth + gap && spaceLeft > spaceRight;
+
+  const desiredLeft = openLeft ? cardRect.left - tooltipWidth - gap : cardRect.right + gap;
+
+  const maxLeft = Math.max(margin, viewportWidth - tooltipWidth - margin);
+
+  const left = Math.min(Math.max(desiredLeft, margin), maxLeft);
+
+  const centeredTop = cardRect.top + (cardRect.height - tooltipHeight) / 2;
+
+  const openUp = centeredTop + tooltipHeight > viewportHeight - margin;
+
+  const desiredTop = openUp ? cardRect.top - tooltipHeight - gap : centeredTop;
+
+  const maxTop = Math.max(margin, viewportHeight - tooltipHeight - margin);
+
+  const top = Math.min(Math.max(desiredTop, margin), maxTop);
+
+  tooltip.style.left = `${left - cardRect.left}px`;
+  tooltip.style.top = `${top - cardRect.top}px`;
+
+  tooltip.classList.toggle('ingredient-tooltip--left', openLeft);
+
+  tooltip.classList.toggle('ingredient-tooltip--up', openUp);
 }
 
 function createIngredientVisual(ingredient: Ingredient): HTMLElement {
@@ -56,6 +140,32 @@ export function createShelf({
     button.type = 'button';
     button.disabled = isBlocked || isEmpty;
 
+    button.draggable = !isBlocked && !isEmpty;
+
+    button.addEventListener('dragstart', (event: DragEvent) => {
+      if (isBlocked || isEmpty || !event.dataTransfer) {
+        event.preventDefault();
+        return;
+      }
+
+      event.dataTransfer.setData('text/plain', ingredient.id);
+      event.dataTransfer.effectAllowed = 'copy';
+
+      const image = button.querySelector<HTMLImageElement>('.ingredient-card__image');
+
+      if (image && image.complete && image.naturalWidth > 0) {
+        const bounds = image.getBoundingClientRect();
+
+        event.dataTransfer.setDragImage(image, bounds.width / 2, bounds.height / 2);
+      }
+
+      button.classList.add('ingredient-card_dragging');
+    });
+
+    button.addEventListener('dragend', () => {
+      button.classList.remove('ingredient-card_dragging');
+    });
+
     if (isEmpty) {
       button.classList.add('ingredient-card_empty');
     }
@@ -68,19 +178,27 @@ export function createShelf({
     name.className = 'ingredient-card__name';
     name.textContent = ingredient.name;
 
-    const stats = document.createElement('span');
-    stats.className = 'ingredient-card__stats';
-    stats.textContent = isEmpty
-      ? 'Empty'
-      : `T ${formatValue(ingredient.temperature)} · D ${formatValue(
-          ingredient.density,
-        )} · M ${formatValue(ingredient.magicPower)}`;
-
     const badge = document.createElement('span');
     badge.className = 'ingredient-card__stock';
     badge.textContent = String(amount);
 
-    button.append(name, stats, badge);
+    button.append(name, badge);
+
+    if (!isEmpty) {
+      const tooltip = createIngredientTooltip(ingredient);
+
+      button.setAttribute('aria-describedby', tooltip.id);
+      button.append(tooltip);
+
+      const updateTooltipPosition = (): void => {
+        positionIngredientTooltip(button, tooltip);
+      };
+
+      button.addEventListener('mouseenter', updateTooltipPosition);
+
+      button.addEventListener('focus', updateTooltipPosition);
+    }
+
     button.addEventListener('click', () => onIngredientClick(ingredient));
 
     list.append(button);

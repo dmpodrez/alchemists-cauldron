@@ -18,6 +18,7 @@ export interface GameState {
   shelfStock: ShelfStock;
   gameOverReason: GameOverReason | null;
   difficulty: Difficulty;
+  reactionIds: string[];
 }
 
 export function createMenuState(): GameState {
@@ -32,5 +33,6 @@ export function createMenuState(): GameState {
     cauldronIngredients: [],
     shelfStock: {},
     gameOverReason: null,
+    reactionIds: [],
   };
 }

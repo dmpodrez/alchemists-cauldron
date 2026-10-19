@@ -5599,3 +5599,494 @@ input,
     min-width: 620px;
   }
 }
+
+/* STORY 3 — CAULDRON DRAG & DROP */
+
+.cauldron-visual {
+  transition: filter 180ms ease;
+}
+
+.cauldron_drop-active .cauldron-visual {
+  filter: drop-shadow(0 0 18px rgb(240 190 95 / 50%)) drop-shadow(0 0 36px rgb(240 190 95 / 20%));
+}
+
+.cauldron_drop-active .cauldron-hint {
+  color: #f0c778;
+}
+
+/* STORY 3 — INGREDIENT TOOLTIPS */
+
+.ingredient-card {
+  overflow: visible;
+  grid-template-rows: 92px auto;
+}
+
+.ingredient-card:hover,
+.ingredient-card:focus-visible {
+  z-index: 30;
+}
+
+.ingredient-tooltip {
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+
+  display: grid;
+  gap: 10px;
+  width: 220px;
+  padding: 16px;
+
+  border: 1px solid #bc9052;
+  border-radius: 12px;
+
+  background: #211923;
+  box-shadow: 0 12px 35px rgb(0 0 0 / 60%);
+
+  color: #eee1d4;
+  font-family: var(--font-ui);
+  text-align: left;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: none;
+
+  transition:
+    opacity 150ms ease,
+    visibility 150ms ease;
+}
+
+.ingredient-card:hover:not(:disabled) .ingredient-tooltip,
+.ingredient-card:focus-visible:not(:disabled) .ingredient-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ingredient-tooltip__title {
+  display: block;
+  padding-bottom: 9px;
+  border-bottom: 1px solid rgb(188 144 82 / 30%);
+  color: #f0c778;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ingredient-tooltip__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.ingredient-tooltip__row strong {
+  color: #f0c778;
+}
+
+/* Hide ingredient tooltips during dragging */
+
+.ingredient-card_dragging .ingredient-tooltip {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* STORY 3 — POUR OUT */
+
+.recipe__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pour-out-button {
+  padding: 10px 14px;
+  border: 1px solid #9b6546;
+  border-radius: 12px;
+  background: #5d3028;
+  color: #fff0de;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pour-out-button:hover:not(:disabled) {
+  background: #804235;
+}
+
+.pour-out-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .recipe__actions {
+    flex-direction: column;
+  }
+
+  .pour-out-button,
+  .recipe__actions .brew-button {
+    width: 100%;
+  }
+}
+
+/* STORY 3 — BREW SUCCESS ANIMATION */
+
+.cauldron-visual_brew-success {
+  animation: cauldron-success-flash 900ms ease-out;
+}
+
+.cauldron-visual_brew-success::after {
+  content: 'BREW SUCCESS!';
+  position: absolute;
+  z-index: 30;
+  top: 38%;
+  left: 50%;
+  width: max-content;
+  max-width: 95%;
+  color: #ffe7a0;
+  font-size: clamp(17px, 3vw, 28px);
+  font-weight: 800;
+  text-align: center;
+  text-shadow:
+    0 0 12px rgb(255 196 65 / 90%),
+    0 0 28px rgb(255 153 30 / 65%),
+    0 3px 6px rgb(0 0 0 / 80%);
+  pointer-events: none;
+  animation: cauldron-success-label 900ms ease-out both;
+}
+
+@keyframes cauldron-success-flash {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+
+  35% {
+    filter: drop-shadow(0 0 28px rgb(255 189 65 / 85%));
+  }
+}
+
+@keyframes cauldron-success-label {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 18px) scale(0.75);
+  }
+
+  25% {
+    opacity: 1;
+    transform: translate(-50%, -5px) scale(1.08);
+  }
+
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -16px) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -35px) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cauldron-visual_brew-success,
+  .cauldron-visual_brew-success::after {
+    animation-duration: 0.01ms;
+  }
+}
+
+/* STORY 3 — BREW FAILURE ANIMATION */
+
+.game_brew-failure {
+  animation: game-failure-shake 550ms ease-in-out;
+}
+
+.cauldron-visual_brew-failure {
+  animation: cauldron-failure-flash 800ms ease-out;
+}
+
+.cauldron-visual_brew-failure::before {
+  content: '';
+  position: absolute;
+  z-index: 29;
+  inset: 15%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(255 218 125 / 90%) 0%,
+    rgb(255 78 34 / 70%) 30%,
+    rgb(190 24 20 / 40%) 55%,
+    transparent 75%
+  );
+  pointer-events: none;
+  animation: cauldron-explosion 800ms ease-out both;
+}
+
+.cauldron-visual_brew-failure::after {
+  content: 'BREW FAILED!';
+  position: absolute;
+  z-index: 30;
+  top: 38%;
+  left: 50%;
+  width: max-content;
+  max-width: 95%;
+  color: #ffb5a0;
+  font-size: clamp(17px, 3vw, 28px);
+  font-weight: 800;
+  text-shadow:
+    0 0 15px rgb(255 55 30 / 90%),
+    0 3px 6px rgb(0 0 0 / 80%);
+  pointer-events: none;
+  animation: cauldron-failure-label 800ms ease-out both;
+}
+
+@keyframes game-failure-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20%,
+  60% {
+    transform: translateX(-5px);
+  }
+
+  40%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes cauldron-failure-flash {
+  0%,
+  100% {
+    filter: none;
+  }
+
+  35% {
+    filter: drop-shadow(0 0 35px rgb(255 55 30 / 85%));
+  }
+}
+
+@keyframes cauldron-explosion {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  30% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+@keyframes cauldron-failure-label {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 15px) scale(0.8);
+  }
+
+  25%,
+  65% {
+    opacity: 1;
+    transform: translate(-50%, -5px) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -30px) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game_brew-failure,
+  .cauldron-visual_brew-failure,
+  .cauldron-visual_brew-failure::before,
+  .cauldron-visual_brew-failure::after {
+    animation-duration: 0.01ms;
+  }
+}
+
+/* STORY 3 — FLOATING INGREDIENTS */
+
+.cauldron-floating-ingredients {
+  position: absolute;
+  z-index: 7;
+  top: 23%;
+  left: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 4px;
+
+  width: 54%;
+  height: 14%;
+
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.cauldron-floating-ingredient {
+  display: block;
+  flex: 0 1 42px;
+  min-width: 0;
+  max-width: 42px;
+  aspect-ratio: 1;
+
+  object-fit: contain;
+  opacity: 0.9;
+
+  filter: drop-shadow(0 0 8px rgb(121 255 139 / 45%));
+
+  animation: cauldron-ingredient-float 2.8s ease-in-out infinite;
+}
+
+.cauldron-floating-ingredient:nth-child(2) {
+  animation-delay: -0.6s;
+}
+
+.cauldron-floating-ingredient:nth-child(3) {
+  animation-delay: -1.2s;
+}
+
+.cauldron-floating-ingredient:nth-child(4) {
+  animation-delay: -1.8s;
+}
+
+.cauldron-floating-ingredient:nth-child(5) {
+  animation-delay: -2.4s;
+}
+
+@keyframes cauldron-ingredient-float {
+  0%,
+  100% {
+    transform: translateY(3px) rotate(-5deg);
+  }
+
+  50% {
+    transform: translateY(-9px) rotate(6deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cauldron-floating-ingredient {
+    animation: none;
+  }
+}
+
+/* STORY 3 — FINAL LIFE EXPLOSION */
+
+.game-over_reason-lives {
+  animation: game-failure-shake 550ms ease-in-out;
+}
+
+.game-over_reason-lives::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at center,
+    rgb(255 193 83 / 85%),
+    rgb(237 61 36 / 60%) 25%,
+    rgb(136 18 30 / 30%) 55%,
+    transparent 75%
+  );
+  animation: game-over-explosion 850ms ease-out both;
+}
+
+.game-over_reason-lives::after {
+  content: 'BREW FAILED!';
+  position: absolute;
+  z-index: 3;
+  top: 30%;
+  left: 50%;
+  width: max-content;
+  max-width: 90%;
+  color: #ffb5a0;
+  font-size: clamp(20px, 4vw, 32px);
+  font-weight: 800;
+  text-align: center;
+  text-shadow: 0 0 20px rgb(255 55 30 / 90%);
+  pointer-events: none;
+  animation: cauldron-failure-label 850ms ease-out both;
+}
+
+@keyframes game-over-explosion {
+  0% {
+    opacity: 0;
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-over_reason-lives,
+  .game-over_reason-lives::before,
+  .game-over_reason-lives::after {
+    animation-duration: 0.01ms;
+  }
+}
+
+/* STORY 3 — SUCCESS FEEDBACK ON FINAL BREW */
+
+.game-over_brew-success::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+
+  background: radial-gradient(
+    circle at center,
+    rgb(255 215 100 / 55%) 0%,
+    rgb(220 160 50 / 25%) 35%,
+    transparent 70%
+  );
+
+  animation: game-over-explosion 900ms ease-out both;
+}
+
+.game-over_brew-success::after {
+  content: 'BREW SUCCESS!';
+  position: absolute;
+  z-index: 3;
+  top: 35%;
+  left: 50%;
+
+  width: max-content;
+  max-width: 90%;
+
+  color: #ffe7a0;
+  font-size: clamp(20px, 4vw, 34px);
+  font-weight: 800;
+  text-align: center;
+
+  text-shadow:
+    0 0 15px rgb(255 196 65 / 90%),
+    0 0 30px rgb(255 153 30 / 60%);
+
+  pointer-events: none;
+  animation: cauldron-success-label 900ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-over_brew-success::before,
+  .game-over_brew-success::after {
+    animation-duration: 0.01ms;
+  }
+}

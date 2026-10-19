@@ -3,6 +3,8 @@ import type { Ingredient } from '../data/ingredients';
 
 interface CauldronOptions {
   ingredients: readonly Ingredient[];
+  isDropEnabled: boolean;
+  onIngredientDrop: (ingredientId: string) => void;
 }
 
 const STEAM_PUFF_COUNT = 12;
@@ -69,9 +71,70 @@ function createFire(): HTMLElement {
   return fire;
 }
 
-export function createCauldron({ ingredients }: CauldronOptions): HTMLElement {
+function createFloatingIngredients(ingredients: readonly Ingredient[]): HTMLElement {
+  const container = document.createElement('div');
+  container.className = 'cauldron-floating-ingredients';
+  container.setAttribute('aria-hidden', 'true');
+
+  for (const ingredient of ingredients) {
+    if (!ingredient.image) {
+      continue;
+    }
+
+    const icon = document.createElement('img');
+    icon.className = 'cauldron-floating-ingredient';
+    icon.src = ingredient.image;
+    icon.alt = '';
+    icon.draggable = false;
+
+    container.append(icon);
+  }
+
+  return container;
+}
+
+export function createCauldron({
+  ingredients,
+  isDropEnabled,
+  onIngredientDrop,
+}: CauldronOptions): HTMLElement {
   const section = document.createElement('section');
   section.className = 'cauldron cauldron-section';
+
+  section.addEventListener('dragover', (event: DragEvent) => {
+    if (!isDropEnabled || !event.dataTransfer?.types.includes('text/plain')) {
+      return;
+    }
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+
+    section.classList.add('cauldron_drop-active');
+  });
+
+  section.addEventListener('dragleave', (event: DragEvent) => {
+    const nextTarget = event.relatedTarget;
+
+    if (!(nextTarget instanceof Node) || !section.contains(nextTarget)) {
+      section.classList.remove('cauldron_drop-active');
+    }
+  });
+
+  section.addEventListener('drop', (event: DragEvent) => {
+    section.classList.remove('cauldron_drop-active');
+
+    if (!isDropEnabled || !event.dataTransfer) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const ingredientId = event.dataTransfer.getData('text/plain');
+
+    if (ingredientId) {
+      onIngredientDrop(ingredientId);
+    }
+  });
 
   const visual = document.createElement('div');
   visual.className = 'cauldron-visual';
@@ -104,8 +167,9 @@ export function createCauldron({ ingredients }: CauldronOptions): HTMLElement {
 
   const bubbles = createBubbles();
   const steam = createSteam();
+  const floatingIngredients = createFloatingIngredients(ingredients);
 
-  visual.append(shadow, ambientGlow, fire, image, brewGlow, bubbles, steam);
+  visual.append(shadow, ambientGlow, fire, image, brewGlow, bubbles, steam, floatingIngredients);
 
   const hint = document.createElement('p');
   hint.className = 'cauldron-hint';
