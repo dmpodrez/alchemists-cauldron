@@ -1,6 +1,7 @@
 import type { Ingredient } from '../data/ingredients';
 import type { Recipe } from '../data/recipes';
 import type { ShelfStock } from '../logic/stock';
+import type { Difficulty } from '../data/recipes';
 
 export type GameStatus = 'menu' | 'playing' | 'paused' | 'game-over';
 
@@ -16,11 +17,13 @@ export interface GameState {
   cauldronIngredients: Ingredient[];
   shelfStock: ShelfStock;
   gameOverReason: GameOverReason | null;
+  difficulty: Difficulty;
 }
 
 export function createMenuState(): GameState {
   return {
     status: 'menu',
+    difficulty: 'medium',
     score: 0,
     timeLeft: 0,
     endTime: null,

@@ -4,7 +4,8 @@ import frostLotusImage from '../assets/ingredients/frost-lotus.svg';
 import mandrakeRootImage from '../assets/ingredients/mandrake-root.svg';
 import causticAcidImage from '../assets/ingredients/caustic-acid.svg';
 import essenceVoidImage from '../assets/ingredients/essence-of-the-void.svg';
-
+import phoenixFeatherImage from '../assets/ingredients/phoenix-feather.svg';
+import toadSlimeImage from '../assets/ingredients/toad-slime.svg';
 export interface Ingredient {
   id: string;
   name: string;
@@ -63,8 +64,23 @@ export const INGREDIENTS: readonly Ingredient[] = [
     density: -10,
     magicPower: 40,
   },
-  { id: 'phoenix-feather', name: 'Phoenix Feather', temperature: 50, density: -10, magicPower: 30 },
-  { id: 'toad-slime', name: 'Toad Slime', temperature: 5, density: 30, magicPower: 0 },
+
+  {
+    id: 'phoenix-feather',
+    name: 'Phoenix Feather',
+    image: phoenixFeatherImage,
+    temperature: 50,
+    density: -10,
+    magicPower: 30,
+  },
+  {
+    id: 'toad-slime',
+    name: 'Toad Slime',
+    image: toadSlimeImage,
+    temperature: 5,
+    density: 30,
+    magicPower: 0,
+  },
 ];
 
 export const LEVEL_ONE_INGREDIENTS = INGREDIENTS.slice(0, 6);

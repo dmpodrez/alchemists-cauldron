@@ -1,13 +1,13 @@
-import { formatTime, LEVEL_ONE_START_TIME } from '../logic/timer';
+import { formatTime } from '../logic/timer';
 
 interface HudOptions {
   score: number;
   timeLeft: number;
   lives: number;
+  maxLives: number;
+  startTime: number;
   onPause: () => void;
 }
-
-const MAX_LIVES = 3;
 
 function createHudLabel(text: string): HTMLSpanElement {
   const label = document.createElement('span');
@@ -33,7 +33,14 @@ function createLifeIcon(isActive: boolean): HTMLSpanElement {
   return heart;
 }
 
-export function createHud({ score, timeLeft, lives, onPause }: HudOptions): HTMLElement {
+export function createHud({
+  score,
+  timeLeft,
+  lives,
+  maxLives,
+  startTime,
+  onPause,
+}: HudOptions): HTMLElement {
   const hud = document.createElement('section');
   hud.className = 'hud';
   hud.setAttribute('aria-label', 'Game status');
@@ -73,8 +80,7 @@ export function createHud({ score, timeLeft, lives, onPause }: HudOptions): HTML
 
   const timerProgress = document.createElement('div');
   timerProgress.className = 'hud__timer-progress';
-
-  const progress = Math.max(0, Math.min(100, (timeLeft / LEVEL_ONE_START_TIME) * 100));
+  const progress = Math.max(0, Math.min(100, (timeLeft / startTime) * 100));
   timerProgress.style.width = `${progress}%`;
 
   timerTrack.append(timerProgress);
@@ -82,12 +88,14 @@ export function createHud({ score, timeLeft, lives, onPause }: HudOptions): HTML
 
   const livesItem = document.createElement('div');
   livesItem.className = 'hud__item hud__lives-item';
+  livesItem.classList.add('hud__lives-card');
 
   const livesValue = document.createElement('div');
   livesValue.className = 'hud__lives';
+  livesValue.classList.add('hud__lives-value');
   livesValue.setAttribute('aria-label', `${lives} ${lives === 1 ? 'life' : 'lives'} remaining`);
 
-  for (let index = 0; index < MAX_LIVES; index += 1) {
+  for (let index = 0; index < maxLives; index += 1) {
     livesValue.append(createLifeIcon(index < lives));
   }
 

@@ -1,3 +1,5 @@
+import type { Difficulty } from '../data/recipes';
+
 export interface LeaderboardEntry {
   name: string;
   score: number;
@@ -6,6 +8,14 @@ export interface LeaderboardEntry {
 
 const LEADERBOARD_KEY = 'alchemists-cauldron:leaderboard';
 const MAX_LEADERBOARD_ENTRIES = 10;
+
+function getLeaderboardKey(difficulty: Difficulty): string {
+  if (difficulty === 'medium') {
+    return LEADERBOARD_KEY;
+  }
+
+  return `${LEADERBOARD_KEY}:${difficulty}`;
+}
 
 const PLAYER_NAME_PATTERN = /^[\p{L}\p{N} _-]{2,15}$/u;
 
@@ -45,17 +55,17 @@ function sortLeaderboard(entries: readonly LeaderboardEntry[]): LeaderboardEntry
     .slice(0, MAX_LEADERBOARD_ENTRIES);
 }
 
-function removeBrokenLeaderboard(): void {
+function removeBrokenLeaderboard(difficulty: Difficulty): void {
   try {
-    localStorage.removeItem(LEADERBOARD_KEY);
+    localStorage.removeItem(getLeaderboardKey(difficulty));
   } catch {
-    // Storage can be unavailable. The application must continue working.
+    // Storage can be unavailable.
   }
 }
 
-export function loadLeaderboard(): LeaderboardEntry[] {
+export function loadLeaderboard(difficulty: Difficulty = 'medium'): LeaderboardEntry[] {
   try {
-    const rawValue = localStorage.getItem(LEADERBOARD_KEY);
+    const rawValue = localStorage.getItem(getLeaderboardKey(difficulty));
 
     if (!rawValue) {
       return [];
@@ -64,7 +74,7 @@ export function loadLeaderboard(): LeaderboardEntry[] {
     const parsed: unknown = JSON.parse(rawValue);
 
     if (!Array.isArray(parsed) || !parsed.every((entry) => isLeaderboardEntry(entry))) {
-      removeBrokenLeaderboard();
+      removeBrokenLeaderboard(difficulty);
       return [];
     }
 
@@ -74,8 +84,8 @@ export function loadLeaderboard(): LeaderboardEntry[] {
   }
 }
 
-export function qualifiesForLeaderboard(score: number): boolean {
-  const entries = loadLeaderboard();
+export function qualifiesForLeaderboard(score: number, difficulty: Difficulty = 'medium'): boolean {
+  const entries = loadLeaderboard(difficulty);
 
   if (entries.length < MAX_LEADERBOARD_ENTRIES) {
     return true;
@@ -90,16 +100,24 @@ export function qualifiesForLeaderboard(score: number): boolean {
   return score > lastEntry.score;
 }
 
-export function addLeaderboardEntry(name: string, score: number, createdAt = Date.now()): boolean {
+export function addLeaderboardEntry(
+  name: string,
+  score: number,
+  createdAt = Date.now(),
+  difficulty: Difficulty = 'medium',
+): boolean {
   const normalizedName = name.trim();
 
   if (!isValidPlayerName(normalizedName)) {
     return false;
   }
 
-  const currentEntries = loadLeaderboard();
+  const currentEntries = loadLeaderboard(difficulty);
 
-  if (currentEntries.length >= MAX_LEADERBOARD_ENTRIES && !qualifiesForLeaderboard(score)) {
+  if (
+    currentEntries.length >= MAX_LEADERBOARD_ENTRIES &&
+    !qualifiesForLeaderboard(score, difficulty)
+  ) {
     return false;
   }
 
@@ -113,7 +131,7 @@ export function addLeaderboardEntry(name: string, score: number, createdAt = Dat
   ]);
 
   try {
-    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(nextEntries));
+    localStorage.setItem(getLeaderboardKey(difficulty), JSON.stringify(nextEntries));
 
     return true;
   } catch {
@@ -121,9 +139,9 @@ export function addLeaderboardEntry(name: string, score: number, createdAt = Dat
   }
 }
 
-export function clearLeaderboard(): boolean {
+export function clearLeaderboard(difficulty: Difficulty = 'medium'): boolean {
   try {
-    localStorage.removeItem(LEADERBOARD_KEY);
+    localStorage.removeItem(getLeaderboardKey(difficulty));
     return true;
   } catch {
     return false;
