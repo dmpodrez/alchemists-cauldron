@@ -75,7 +75,7 @@ function updateTimerUi(timeLeft: number): void {
   timer.classList.toggle('hud__timer_danger', timeLeft < 15);
 }
 
-function gameOver(reason: GameOverReason): void {
+function gameOver(reason: GameOverReason, successfulBrew = false): void {
   stopTimerLoop();
   clearSavedGame();
 
@@ -88,11 +88,15 @@ function gameOver(reason: GameOverReason): void {
   };
 
   render();
+
+  if (successfulBrew) {
+    appElement.querySelector('.game-over')?.classList.add('game-over_brew-success');
+  }
 }
 
-function checkOutOfIngredients(): boolean {
+function checkOutOfIngredients(successfulBrew = false): boolean {
   if (state.cauldronIngredients.length === 0 && isShelfEmpty(state.shelfStock)) {
-    gameOver('ingredients');
+    gameOver('ingredients', successfulBrew);
     return true;
   }
 
@@ -421,7 +425,7 @@ function brew(): void {
 
     applyTimeBonus();
 
-    if (checkOutOfIngredients()) {
+    if (checkOutOfIngredients(true)) {
       return;
     }
   } else {

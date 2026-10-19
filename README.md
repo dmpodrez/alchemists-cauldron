@@ -1,92 +1,145 @@
 # 🧪 Alchemist's Cauldron
 
-Alchemist's Cauldron is a browser game built with TypeScript. The player combines limited-stock ingredients and tries to match the Temperature, Density and Magic Power ranges of the current recipe before time, lives or ingredients run out.
+Alchemist's Cauldron is a browser game built with TypeScript, HTML and CSS. Players combine limited-stock ingredients, balance three alchemical properties and brew potions before time, lives or ingredients run out.
 
-This repository currently contains the completed **Level 1 — Basic** gameplay.
+The project implements all three gameplay levels: **Level 1 — Basic, Level 2 — Extended and Level 3 — Full Game**.
 
-## Implemented
+## 🎮 Live Demo
 
-- Start screen with **Start Game**, **Help** and **Leaderboard**
-- 6 Level 1 ingredient cards from the fixed 8-item catalogue
-- Random ingredient stock from **2 to 15** for every new run
-- Cauldron with a maximum capacity of **4** ingredients
-- Temperature, Density and Magic Power calculations
-- Recipe target zones and current-value markers
-- Fixed 20-recipe catalogue
-- Level 1 Medium recipe selection
-- Brew validation with **±8** tolerance
-- **200 points** for a successful brew
-- **+10 seconds** time bonus after a successful brew
-- **150 second** timestamp-based timer
-- **3 lives**
-- Pause / Resume / Exit to Menu flow
-- Automatic pause when the browser tab becomes hidden
-- Game Over reasons for time, lives and depleted ingredients
-- Saving unfinished games to `localStorage` with **Continue Game** (restores paused)
-- Top-10 leaderboard stored in `localStorage`
-- Player-name validation
-- Custom leaderboard clear confirmation
-- Responsive layout for desktop and mobile widths
-- ESLint, Prettier, Husky and Commitlint
+[Play Alchemist's Cauldron — Full Game (Story 3)](https://alchemists-cauldron-git-story-3-rs-a221.vercel.app)
 
-## How to play
+## ✨ Implemented Features
 
-1. Press **Start Game**.
-2. Read the current recipe and its three target ranges.
-3. Select ingredients from the shelf. Every selected ingredient reduces its stock by one.
-4. Watch the cauldron parameter bars update.
-5. Add up to four ingredients.
-6. Press **Brew**.
-7. A successful brew awards 200 points, adds a time bonus and gives a new recipe.
-8. A failed brew costs one life. The used ingredients are still spent.
-9. Continue until the timer reaches zero, all lives are lost, or the ingredient shelf and cauldron are empty.
+### Level 1 — Basic Gameplay
 
-The **Help** button on the start screen also shows the Level 1 rules in-game.
+- Ingredient shelf with limited random stock (2–15).
+- Eight unique ingredient types in the catalogue.
+- Cauldron with a difficulty-dependent capacity.
+- Temperature, Density and Magic Power calculations.
+- Animated parameter bars with target zones.
+- Twenty predefined potion recipes.
+- Brew validation with difficulty-specific tolerance.
+- Score, lives and countdown timer.
+- Pause, Resume and Exit to Menu.
+- Automatic pause when the browser tab becomes hidden.
+- Game Over with different ending reasons.
+- Local leaderboard with Top-10 results.
 
-## Level 1 rules
+### Level 2 — Extended Gameplay
 
-| Rule                            |  Value |
-| ------------------------------- | -----: |
-| Difficulty rules                | Medium |
-| Shelf ingredients               |      6 |
-| Random stock per ingredient     |   2–15 |
-| Maximum ingredients in cauldron |      4 |
-| Starting time                   |  150 s |
-| Starting lives                  |      3 |
-| Brew tolerance                  |     ±8 |
-| Score per successful brew       |    200 |
-| Time bonus                      |  +10 s |
+- Three difficulties: Easy, Medium and Hard.
+- Different rules, ingredient counts and rewards.
+- Difficulty selection through Settings.
+- Separate leaderboard for each difficulty.
+- Automatic game saving using localStorage.
+- Continue Game after refreshing or reopening the page.
+- Restoring saved games in a paused state.
+- Validation of saved data.
 
-## Technologies
+### Level 3 — Full Game
+
+- Drag & Drop ingredients into the cauldron.
+- Ingredient tooltips showing all three properties.
+- Smart tooltip positioning near screen edges.
+- Fifteen predefined chemical reactions.
+- Random reaction selection based on difficulty.
+- Reaction effects and one-time penalties.
+- Pour Out action with a 10-second penalty.
+- Brew success and failure animations.
+- Floating ingredient icons inside the cauldron.
+- Keyboard shortcuts for gameplay.
+
+## ⚙️ Difficulty Settings
+
+| Setting           | Easy  | Medium | Hard  |
+| ----------------- | ----- | ------ | ----- |
+| Shelf ingredients | 4     | 6      | 8     |
+| Cauldron capacity | 4     | 4      | 5     |
+| Starting time     | 180 s | 150 s  | 150 s |
+| Lives             | 5     | 3      | 3     |
+| Brew tolerance    | ±12   | ±8     | ±5    |
+| Score per success | 100   | 200    | 300   |
+| Time bonus        | +15 s | +10 s  | +5 s  |
+| Active reactions  | 0     | 2      | 3     |
+
+## 🕹️ How to Play
+
+1. Open Settings and choose a difficulty.
+2. Click Start Game.
+3. Read the current potion recipe and its target ranges.
+4. Add ingredients by clicking, dragging or using number keys.
+5. Watch the cauldron parameters change.
+6. Try to match all three target ranges.
+7. Click Brew or press B to check the mixture.
+8. Use Pour Out to discard an unwanted mixture at the cost of 10 seconds.
+9. Continue brewing until time, lives or ingredients run out.
+
+A successful brew awards points, adds time and generates a new recipe. A failed brew costs one life. Used ingredients are never returned to the shelf.
+
+## ⌨️ Controls
+
+| Action         | Mouse / Keyboard                            |
+| -------------- | ------------------------------------------- |
+| Add ingredient | Click, Drag & Drop or keys 1–8              |
+| Brew potion    | Brew button or B                            |
+| Pour Out       | Pour Out button or X                        |
+| Pause game     | Pause button or Escape                      |
+| Resume game    | Resume button (Enter or Space when focused) |
+| Exit to Menu   | Exit to Menu button                         |
+
+Game shortcuts only work during active gameplay. Standard keyboard navigation is preserved on menu, pause and Game Over screens.
+
+## 🧪 Chemical Reactions
+
+The game includes 15 predefined chemical reactions.
+
+- Easy: no reactions.
+- Medium: 2 randomly selected reactions.
+- Hard: 3 randomly selected reactions.
+
+Reactions activate when specific ingredient combinations or parameter conditions are met.
+
+They can modify Temperature, Density and Magic Power, subtract time, remove lives or clear the cauldron.
+
+One-time penalties are applied only when a reaction becomes newly active.
+
+## 💾 Saving and Leaderboard
+
+Unfinished games are automatically saved to localStorage.
+
+Continue Game restores the saved difficulty, score, remaining time, lives, current recipe, ingredient stock, cauldron contents and active reactions.
+
+Restored games open in the paused state.
+
+The leaderboard stores the Top-10 scores separately for Easy, Medium and Hard. Entries include player name, score, difficulty and date.
+
+Corrupted or unavailable localStorage data is handled without crashing the game.
+
+## 🛠️ Technologies
 
 - TypeScript
-- HTML
-- CSS
+- HTML5
+- CSS3
 - Vite
 - ESLint
 - Prettier
 - Husky
 - Commitlint
 
-No JavaScript framework, CSS framework or game engine is used.
+No JavaScript frameworks, CSS frameworks or game engines are used.
 
-## Project structure
+## 📁 Project Structure
 
-```text
-src/
-  assets/       visual assets
-  data/         ingredients and recipes
-  logic/        pure gameplay logic
-  state/        game state types and initial state
-  storage/      leaderboard persistence
-  styles/       application styles
-  ui/           DOM rendering components
-  main.ts       application flow and state transitions
-```
+- `src/assets/` — game images, SVG icons and fonts
+- `src/data/` — ingredients, recipes, reactions and difficulty settings
+- `src/logic/` — game calculations and gameplay logic
+- `src/state/` — game state definitions
+- `src/storage/` — saving and leaderboard
+- `src/ui/` — interface components
+- `src/styles/` — styling and animations
+- `src/main.ts` — main game flow and event handling
 
-Game rules and calculations are kept separate from DOM rendering.
-
-## Run locally
+## 🚀 Running Locally
 
 Install dependencies:
 
@@ -106,37 +159,10 @@ Create a production build:
 npm run build
 ```
 
-Run code-quality checks:
-
-```bash
-npm run lint
-npm run format:check
-```
-
-## Controls
-
-Level 1 is mouse / pointer based:
-
-- click an ingredient card to add one portion to the cauldron;
-- click **Brew** to check the mixture;
-- click **Pause** to stop the run;
-- use **Resume** or **Exit to Menu** from the pause dialog;
-- open **Leaderboard** from the start screen or Game Over screen.
-
-## Persistence
-
-Unfinished Level 1 games are saved to browser `localStorage`. When a valid save exists, **Continue Game** restores it in a paused state. A completed run clears the unfinished save.
-
-The Level 1 Top-10 leaderboard is also stored in `localStorage`. Invalid or corrupted stored data is handled without crashing the game.
-
-## Task
+## 📋 Task
 
 [RS School — Alchemist's Cauldron](https://github.com/rolling-scopes-school/qualifying-stage/tree/main/tasks/game-alchemists-cauldron)
 
-## Asset credits
+## 🎨 Asset Credits
 
-See [ASSET_CREDITS.md](./ASSET_CREDITS.md) for ingredient icon authors and licensing.
-
-## Live Demo
-
-**Play online:** [Alchemist's Cauldron](https://alchemists-cauldron.vercel.app)
+See [ASSET_CREDITS.md](./ASSET_CREDITS.md) for asset authors and licensing information.
