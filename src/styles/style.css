@@ -5613,3 +5613,80 @@ input,
 .cauldron_drop-active .cauldron-hint {
   color: #f0c778;
 }
+
+/* STORY 3 — INGREDIENT TOOLTIPS */
+
+.ingredient-card {
+  overflow: visible;
+  grid-template-rows: 92px auto;
+}
+
+.ingredient-card:hover,
+.ingredient-card:focus-visible {
+  z-index: 30;
+}
+
+.ingredient-tooltip {
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+
+  display: grid;
+  gap: 10px;
+  width: 220px;
+  padding: 16px;
+
+  border: 1px solid #bc9052;
+  border-radius: 12px;
+
+  background: #211923;
+  box-shadow: 0 12px 35px rgb(0 0 0 / 60%);
+
+  color: #eee1d4;
+  font-family: var(--font-ui);
+  text-align: left;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: none;
+
+  transition:
+    opacity 150ms ease,
+    visibility 150ms ease;
+}
+
+.ingredient-card:hover:not(:disabled) .ingredient-tooltip,
+.ingredient-card:focus-visible:not(:disabled) .ingredient-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ingredient-tooltip__title {
+  display: block;
+  padding-bottom: 9px;
+  border-bottom: 1px solid rgb(188 144 82 / 30%);
+  color: #f0c778;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ingredient-tooltip__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.ingredient-tooltip__row strong {
+  color: #f0c778;
+}
+
+/* Hide ingredient tooltips during dragging */
+
+.ingredient-card_dragging .ingredient-tooltip {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
