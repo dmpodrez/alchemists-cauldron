@@ -451,6 +451,46 @@ function brew(): void {
 
   saveGame(state);
   renderWithAnimatedParameterBars();
+
+  if (success) {
+    const visual = appElement.querySelector<HTMLElement>('.cauldron-visual');
+
+    if (visual) {
+      visual.classList.add('cauldron-visual_brew-success');
+
+      visual.addEventListener('animationend', (event) => {
+        if (event.target === visual && event.animationName === 'cauldron-success-flash') {
+          visual.classList.remove('cauldron-visual_brew-success');
+        }
+      });
+    }
+  }
+
+  if (!success) {
+    const game = appElement.querySelector<HTMLElement>('.game');
+
+    const visual = appElement.querySelector<HTMLElement>('.cauldron-visual');
+
+    if (game) {
+      game.classList.add('game_brew-failure');
+
+      game.addEventListener('animationend', (event) => {
+        if (event.target === game && event.animationName === 'game-failure-shake') {
+          game.classList.remove('game_brew-failure');
+        }
+      });
+    }
+
+    if (visual) {
+      visual.classList.add('cauldron-visual_brew-failure');
+
+      visual.addEventListener('animationend', (event) => {
+        if (event.target === visual && event.animationName === 'cauldron-failure-flash') {
+          visual.classList.remove('cauldron-visual_brew-failure');
+        }
+      });
+    }
+  }
 }
 
 function renderGame(): HTMLElement {
