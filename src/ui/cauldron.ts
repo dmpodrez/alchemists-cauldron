@@ -71,6 +71,28 @@ function createFire(): HTMLElement {
   return fire;
 }
 
+function createFloatingIngredients(ingredients: readonly Ingredient[]): HTMLElement {
+  const container = document.createElement('div');
+  container.className = 'cauldron-floating-ingredients';
+  container.setAttribute('aria-hidden', 'true');
+
+  for (const ingredient of ingredients) {
+    if (!ingredient.image) {
+      continue;
+    }
+
+    const icon = document.createElement('img');
+    icon.className = 'cauldron-floating-ingredient';
+    icon.src = ingredient.image;
+    icon.alt = '';
+    icon.draggable = false;
+
+    container.append(icon);
+  }
+
+  return container;
+}
+
 export function createCauldron({
   ingredients,
   isDropEnabled,
@@ -145,8 +167,9 @@ export function createCauldron({
 
   const bubbles = createBubbles();
   const steam = createSteam();
+  const floatingIngredients = createFloatingIngredients(ingredients);
 
-  visual.append(shadow, ambientGlow, fire, image, brewGlow, bubbles, steam);
+  visual.append(shadow, ambientGlow, fire, image, brewGlow, bubbles, steam, floatingIngredients);
 
   const hint = document.createElement('p');
   hint.className = 'cauldron-hint';
