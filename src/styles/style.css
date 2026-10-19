@@ -5599,3 +5599,17 @@ input,
     min-width: 620px;
   }
 }
+
+/* STORY 3 — CAULDRON DRAG & DROP */
+
+.cauldron-visual {
+  transition: filter 180ms ease;
+}
+
+.cauldron_drop-active .cauldron-visual {
+  filter: drop-shadow(0 0 18px rgb(240 190 95 / 50%)) drop-shadow(0 0 36px rgb(240 190 95 / 20%));
+}
+
+.cauldron_drop-active .cauldron-hint {
+  color: #f0c778;
+}

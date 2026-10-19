@@ -291,6 +291,22 @@ function addIngredient(ingredient: Ingredient): void {
   renderWithAnimatedParameterBars();
 }
 
+function handleIngredientDrop(ingredientId: string): void {
+  if (state.status !== 'playing') {
+    return;
+  }
+
+  const shelfIngredients = INGREDIENTS.slice(0, DIFFICULTY_SETTINGS[state.difficulty].shelfSize);
+
+  const ingredient = shelfIngredients.find((item) => item.id === ingredientId);
+
+  if (!ingredient) {
+    return;
+  }
+
+  addIngredient(ingredient);
+}
+
 function applyTimeBonus(): void {
   if (state.endTime === null) {
     return;
@@ -406,6 +422,8 @@ function renderGame(): HTMLElement {
   centerColumn.append(
     createCauldron({
       ingredients: state.cauldronIngredients,
+      isDropEnabled: state.status === 'playing' && !cauldronIsFull,
+      onIngredientDrop: handleIngredientDrop,
     }),
   );
 

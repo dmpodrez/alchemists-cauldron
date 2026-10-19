@@ -56,6 +56,18 @@ export function createShelf({
     button.type = 'button';
     button.disabled = isBlocked || isEmpty;
 
+    button.draggable = !isBlocked && !isEmpty;
+
+    button.addEventListener('dragstart', (event: DragEvent) => {
+      if (isBlocked || isEmpty || !event.dataTransfer) {
+        event.preventDefault();
+        return;
+      }
+
+      event.dataTransfer.setData('text/plain', ingredient.id);
+      event.dataTransfer.effectAllowed = 'copy';
+    });
+
     if (isEmpty) {
       button.classList.add('ingredient-card_empty');
     }
