@@ -5,6 +5,8 @@ interface RecipePanelOptions {
   ingredientCount: number;
   capacity: number;
   onBrew: () => void;
+  onPourOut: () => void;
+  isPaused: boolean;
 }
 
 function formatRange(min: number, max: number): string {
@@ -16,6 +18,8 @@ export function createRecipePanel({
   ingredientCount,
   capacity,
   onBrew,
+  onPourOut,
+  isPaused,
 }: RecipePanelOptions): HTMLElement {
   const section = document.createElement('section');
   section.className = 'recipe';
@@ -73,10 +77,25 @@ export function createRecipePanel({
   brewButton.className = 'brew-button';
   brewButton.type = 'button';
   brewButton.textContent = 'Brew';
-  brewButton.disabled = ingredientCount === 0;
+  brewButton.disabled = ingredientCount === 0 || isPaused;
   brewButton.addEventListener('click', onBrew);
 
-  footer.append(counter, brewButton);
+  const pourOutButton = document.createElement('button');
+
+  pourOutButton.className = 'pour-out-button';
+  pourOutButton.type = 'button';
+  pourOutButton.textContent = 'Pour Out (-10s)';
+  pourOutButton.disabled = ingredientCount === 0 || isPaused;
+
+  pourOutButton.addEventListener('click', onPourOut);
+
+  const actions = document.createElement('div');
+  actions.className = 'recipe__actions';
+
+  actions.append(pourOutButton, brewButton);
+
+  footer.append(counter, actions);
+
   section.append(header, ranges, footer);
 
   return section;

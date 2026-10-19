@@ -7,7 +7,7 @@ import { REACTIONS } from './data/reactions';
 import { addIngredientToCauldron } from './logic/cauldron';
 import { createStock, isShelfEmpty } from './logic/stock';
 import { selectReactions } from './logic/select-reactions';
-
+import { pourOutCauldron } from './logic/pour-out';
 import { addTimeBonus, calculateTimeLeft, createEndTime, formatTime } from './logic/timer';
 
 import { createMenuState, type GameOverReason, type GameState } from './state/game-state';
@@ -380,6 +380,28 @@ function applyTimeBonus(): void {
   };
 }
 
+function handlePourOut(): void {
+  const nextState = pourOutCauldron(state);
+
+  if (nextState === null) {
+    return;
+  }
+
+  state = nextState;
+
+  if (state.timeLeft <= 0) {
+    gameOver('time');
+    return;
+  }
+
+  if (checkOutOfIngredients()) {
+    return;
+  }
+
+  saveGame(state);
+  renderWithAnimatedParameterBars();
+}
+
 function brew(): void {
   if (state.status !== 'playing' || !state.activeRecipe || state.cauldronIngredients.length === 0) {
     return;
@@ -491,6 +513,8 @@ function renderGame(): HTMLElement {
       ingredientCount: state.cauldronIngredients.length,
       capacity: cauldronCapacity,
       onBrew: brew,
+      onPourOut: handlePourOut,
+      isPaused: state.status === 'paused',
     }),
     createParameterBars(cauldronValues, state.activeRecipe),
   );
