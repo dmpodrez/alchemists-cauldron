@@ -2,9 +2,11 @@ import { pickNextRecipe, pickRandomRecipe } from './logic/recipe';
 import './styles/style.css';
 import { createPauseDialog } from './ui/pause-dialog';
 import { isSuccessfulBrew } from './logic/brew';
-import { calculateCauldron } from './logic/calculate-cauldron';
+import { calculateCauldronWithReactions, getNewlyActivatedReactions } from './logic/reactions';
+import { REACTIONS } from './data/reactions';
 import { addIngredientToCauldron } from './logic/cauldron';
 import { createStock, isShelfEmpty } from './logic/stock';
+import { selectReactions } from './logic/select-reactions';
 
 import { addTimeBonus, calculateTimeLeft, createEndTime, formatTime } from './logic/timer';
 
@@ -41,6 +43,12 @@ let state: GameState = createMenuState();
 let timerFrame: number | null = null;
 let lastRenderedSecond: number | null = null;
 let scoreSubmittedForCurrentRun = false;
+
+function calculateCurrentCauldronValues() {
+  const selectedReactions = REACTIONS.filter((reaction) => state.reactionIds.includes(reaction.id));
+
+  return calculateCauldronWithReactions(state.cauldronIngredients, selectedReactions).values;
+}
 
 function stopTimerLoop(): void {
   if (timerFrame !== null) {
@@ -197,6 +205,7 @@ function startGame(): void {
   state = {
     status: 'playing',
     difficulty,
+    reactionIds: selectReactions(difficulty).map((reaction) => reaction.id),
     score: 0,
     timeLeft: settings.startTime,
     endTime: createEndTime(settings.startTime),
@@ -266,7 +275,7 @@ function submitLeaderboardScore(name: string): string | null {
 }
 
 function addIngredient(ingredient: Ingredient): void {
-  if (state.status !== 'playing') {
+  if (state.status !== 'playing' || state.endTime === null) {
     return;
   }
 
@@ -281,11 +290,58 @@ function addIngredient(ingredient: Ingredient): void {
     return;
   }
 
+  // Reactions selected for the current game.
+  const selectedReactions = REACTIONS.filter((reaction) => state.reactionIds.includes(reaction.id));
+
+  // Only reactions that have just become active can fire.
+  const firedReactions = getNewlyActivatedReactions(
+    state.cauldronIngredients,
+    result.ingredients,
+    selectedReactions,
+  );
+
+  // Calculate one-time penalties.
+  const timePenalty = firedReactions.reduce(
+    (total, reaction) => total + (reaction.onActivate?.timePenalty ?? 0),
+    0,
+  );
+
+  const lifePenalty = firedReactions.reduce(
+    (total, reaction) => total + (reaction.onActivate?.lifePenalty ?? 0),
+    0,
+  );
+
+  const clearCauldron = firedReactions.some(
+    (reaction) => reaction.onActivate?.clearCauldron === true,
+  );
+
+  // Preserve the existing timer deadline, minus penalties.
+  const nextEndTime = state.endTime - timePenalty * 1000;
+  const nextTimeLeft = calculateTimeLeft(nextEndTime);
+  const nextLives = Math.max(0, state.lives - lifePenalty);
+
   state = {
     ...state,
-    cauldronIngredients: result.ingredients,
+    cauldronIngredients: clearCauldron ? [] : result.ingredients,
     shelfStock: result.stock,
+    lives: nextLives,
+    timeLeft: nextTimeLeft,
+    endTime: nextEndTime,
   };
+
+  if (nextLives === 0) {
+    gameOver('lives');
+    return;
+  }
+
+  if (nextTimeLeft === 0) {
+    gameOver('time');
+    return;
+  }
+
+  if (checkOutOfIngredients()) {
+    return;
+  }
 
   saveGame(state);
   renderWithAnimatedParameterBars();
@@ -330,7 +386,7 @@ function brew(): void {
   }
   const settings = DIFFICULTY_SETTINGS[state.difficulty];
   const currentRecipe = state.activeRecipe;
-  const values = calculateCauldron(state.cauldronIngredients);
+  const values = calculateCurrentCauldronValues();
   const success = isSuccessfulBrew(values, currentRecipe, settings.tolerance);
 
   if (success) {
@@ -394,7 +450,7 @@ function renderGame(): HTMLElement {
   const cauldronCapacity = DIFFICULTY_SETTINGS[state.difficulty].cauldronCapacity;
   const cauldronIsFull = state.cauldronIngredients.length >= cauldronCapacity;
 
-  const cauldronValues = calculateCauldron(state.cauldronIngredients);
+  const cauldronValues = calculateCurrentCauldronValues();
 
   const settings = DIFFICULTY_SETTINGS[state.difficulty];
 

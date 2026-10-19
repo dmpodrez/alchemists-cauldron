@@ -3,9 +3,11 @@ import { INGREDIENTS, type Ingredient } from '../data/ingredients';
 import { RECIPES, type Difficulty } from '../data/recipes';
 import { calculateTimeLeft } from '../logic/timer';
 import type { GameState } from '../state/game-state';
+import { REACTIONS } from '../data/reactions';
+import { selectReactions } from '../logic/select-reactions';
 
 const SAVE_KEY = 'alchemists-cauldron:game-save';
-const SAVE_VERSION = 2;
+const SAVE_VERSION = 3;
 
 interface SavedGame {
   version: number;
@@ -17,6 +19,7 @@ interface SavedGame {
   activeRecipe: { id: string };
   cauldronIngredients: { id: string }[];
   shelfStock: Record<string, number>;
+  reactionIds?: string[];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -41,7 +44,7 @@ function isValidSave(value: unknown): value is SavedGame {
   const allowedIds = new Set(shelfIngredients.map(({ id }) => id));
 
   if (
-    value.version !== SAVE_VERSION ||
+    (value.version !== SAVE_VERSION && value.version !== 2) ||
     (value.status !== 'playing' && value.status !== 'paused') ||
     !Number.isSafeInteger(value.score) ||
     (value.score as number) < 0 ||
@@ -57,6 +60,21 @@ function isValidSave(value: unknown): value is SavedGame {
     !isRecord(value.shelfStock)
   ) {
     return false;
+  }
+
+  if (value.version === SAVE_VERSION) {
+    const reactionIds = value.reactionIds;
+
+    if (
+      !Array.isArray(reactionIds) ||
+      reactionIds.length !== settings.reactionCount ||
+      !reactionIds.every(
+        (id: unknown) => typeof id === 'string' && REACTIONS.some((reaction) => reaction.id === id),
+      ) ||
+      new Set(reactionIds).size !== reactionIds.length
+    ) {
+      return false;
+    }
   }
 
   const recipeExists = RECIPES.some(
@@ -132,6 +150,7 @@ export function saveGame(state: GameState): void {
   const snapshot: SavedGame = {
     version: SAVE_VERSION,
     difficulty: state.difficulty,
+    reactionIds: state.reactionIds,
     status: state.status,
     score: state.score,
     timeLeft,
@@ -188,6 +207,12 @@ export function loadSavedGame(): GameState | null {
     return {
       status: 'paused',
       difficulty: parsed.difficulty,
+
+      reactionIds:
+        parsed.version === 2
+          ? selectReactions(parsed.difficulty).map((reaction) => reaction.id)
+          : (parsed.reactionIds ?? []),
+
       score: parsed.score,
       timeLeft: parsed.timeLeft,
       endTime: null,
