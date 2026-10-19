@@ -5690,3 +5690,42 @@ input,
   opacity: 0 !important;
   visibility: hidden !important;
 }
+
+/* STORY 3 — POUR OUT */
+
+.recipe__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pour-out-button {
+  padding: 10px 14px;
+  border: 1px solid #9b6546;
+  border-radius: 12px;
+  background: #5d3028;
+  color: #fff0de;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pour-out-button:hover:not(:disabled) {
+  background: #804235;
+}
+
+.pour-out-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .recipe__actions {
+    flex-direction: column;
+  }
+
+  .pour-out-button,
+  .recipe__actions .brew-button {
+    width: 100%;
+  }
+}
